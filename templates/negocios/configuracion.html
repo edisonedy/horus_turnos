@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+{% block title %}Negocio - HORUS TURNOS{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Configuración del negocio</h1>
+<p class="text-muted">Datos base usados por el bot de WhatsApp y por la agenda.</p>
+<form method="post" enctype="multipart/form-data" class="row g-4">
+    {% csrf_token %}
+    <div class="col-lg-6">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Negocio</div>
+            <div class="card-body">
+                {% with form=negocio_form %}{% include 'includes/form_fields.html' %}{% endwith %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Bot WhatsApp</div>
+            <div class="card-body">
+                {% if bot_form %}
+                    {% with form=bot_form %}{% include 'includes/form_fields.html' %}{% endwith %}
+                {% else %}
+                    <div class="alert alert-info">Guarda primero el negocio para configurar el bot.</div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    <div class="col-12">
+        <button class="btn btn-horus" type="submit">Guardar configuración</button>
+    </div>
+</form>
+{% endblock %}

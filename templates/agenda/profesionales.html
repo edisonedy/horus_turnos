@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Profesionales - HORUS TURNOS{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Profesionales</h1>
+<p class="text-muted">Si no configuras profesionales, el bot maneja la agenda como una sola capacidad por horario.</p>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">{% if profesional_editando %}Editar profesional{% else %}Nuevo profesional{% endif %}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% include 'includes/form_fields.html' %}
+                    <button class="btn btn-horus" type="submit">Guardar</button>
+                    {% if profesional_editando %}<a href="{% url 'profesionales' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Profesionales configurados</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Nombre</th><th>Especialidad</th><th>Teléfono</th><th>Sucursal</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>
+                    {% for profesional in profesionales %}
+                        <tr>
+                            <td>{{ profesional.nombre }}</td>
+                            <td>{{ profesional.especialidad|default:'-' }}</td>
+                            <td>{{ profesional.telefono|default:'-' }}</td>
+                            <td>{{ profesional.sucursal.nombre|default:'General' }}</td>
+                            <td>{{ profesional.activo|yesno:'Activo,Inactivo' }}</td>
+                            <td><a href="{% url 'profesional_editar' profesional.id %}" class="btn btn-sm btn-outline-secondary">Editar</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-muted">Sin profesionales.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

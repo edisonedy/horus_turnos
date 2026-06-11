@@ -1,0 +1,33 @@
+{% extends 'base.html' %}
+{% block title %}WhatsApp API - HORUS TURNOS{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Configuración WhatsApp API</h1>
+<p class="text-muted">Credenciales oficiales de WhatsApp Cloud API. No se queman tokens en código.</p>
+<div class="row g-4">
+    <div class="col-lg-6">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Credenciales</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% include 'includes/form_fields.html' %}
+                    <button class="btn btn-horus" type="submit">Guardar WhatsApp</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Webhook</div>
+            <div class="card-body">
+                <label class="form-label">URL para Meta</label>
+                <input class="form-control" value="{{ webhook_url }}" readonly>
+                <div class="form-text">Configura esta URL en WhatsApp Cloud API y usa el verify token guardado aquí.</div>
+                <hr>
+                <p class="mb-1 fw-semibold">Eventos recomendados</p>
+                <div class="small text-muted">messages, message_template_status_update, message_status.</div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

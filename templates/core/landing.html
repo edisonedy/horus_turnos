@@ -1,0 +1,292 @@
+{% extends 'base.html' %}
+{% load static %}
+{% block title %}HORUS - Recepcionista IA por WhatsApp{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/landing.css' %}?v=20260611-5">
+{% endblock %}
+{% block content %}
+<section class="landing-v2">
+    <div class="hero-noise"></div>
+    <div class="hero-grid"></div>
+    <div class="container position-relative">
+        <div class="hero-shell">
+            <div class="hero-copy-block">
+                <div class="brand-pill">
+                    <span class="brand-mark">H</span>
+                    Recepcionista IA para WhatsApp
+                </div>
+                <h1><span class="electric-word">Agenda, vende</span> y responde aunque el negocio esté ocupado.</h1>
+                <p>
+                    HORUS convierte WhatsApp en una recepción automática para negocios pequeños:
+                    turnos, recordatorios, productos, promociones, preguntas frecuentes y alertas al dueño.
+                </p>
+                <div class="audience-pills">
+                    <span>Barberías</span>
+                    <span>Clínicas</span>
+                    <span>Spa</span>
+                    <span>Veterinarias</span>
+                    <span>Talleres</span>
+                </div>
+                <div class="hero-actions">
+                    {% if numero_demo %}
+                        <a class="btn btn-electric btn-lg rounded-pill px-4" href="https://wa.me/{{ numero_demo }}?text=Hola" target="_blank" rel="noopener">
+                            Probar demo por WhatsApp
+                        </a>
+                    {% endif %}
+                    <a class="btn btn-glass btn-lg rounded-pill px-4" href="#planes">Ver planes</a>
+                </div>
+                <div class="hero-metrics">
+                    <div><strong>24/7</strong><span>Responde siempre</span></div>
+                    <div><strong>2h</strong><span>Recordatorio antes</span></div>
+                    <div><strong>$35</strong><span>Plan Pro sugerido</span></div>
+                </div>
+            </div>
+
+            <div class="hero-product">
+                <div class="solution-console">
+                    <div class="console-topbar">
+                        <div><span class="console-dot"></span>HORUS Turnos</div>
+                        <strong>En vivo</strong>
+                    </div>
+                    <div class="console-grid">
+                        <div class="console-panel calendar-panel">
+                            <span class="console-label">Agenda de hoy</span>
+                            <div class="calendar-row active"><b>09:00</b><span>Corte de cabello</span><em>Confirmado</em></div>
+                            <div class="calendar-row"><b>10:30</b><span>Barba</span><em>Nuevo</em></div>
+                            <div class="calendar-row"><b>12:00</b><span>Limpieza facial</span><em>Recordar</em></div>
+                        </div>
+                        <div class="console-panel whatsapp-panel">
+                            <span class="console-label">WhatsApp IA</span>
+                            <div class="wa-bubble client">Quiero corte mañana a las 10</div>
+                            <div class="wa-bubble bot">Disponible. ¿Confirmo tu turno?</div>
+                            <div class="wa-bubble client short">Sí</div>
+                        </div>
+                        <div class="console-panel stat-panel">
+                            <span class="console-label">Impacto</span>
+                            <strong>18</strong>
+                            <small>mensajes respondidos automáticamente hoy</small>
+                        </div>
+                        <div class="console-panel stat-panel electric-stat">
+                            <span class="console-label">Ventas</span>
+                            <strong>$42</strong>
+                            <small>cotizaciones levantadas por productos</small>
+                        </div>
+                    </div>
+                    <div class="console-footer">
+                        <div><span>Recordatorio enviado</span><strong>2h antes del turno</strong></div>
+                        <div><span>Alerta dueño</span><strong>Nuevo pedido: Cera x2</strong></div>
+                    </div>
+                </div>
+                <div class="floating-proof proof-one">
+                    <span>24/7</span>
+                    <strong>Sin perder chats</strong>
+                </div>
+                <div class="floating-proof proof-two">
+                    <span>WhatsApp</span>
+                    <strong>Sin links raros</strong>
+                </div>
+            </div>
+        </div>
+        <div class="trusted-line">
+            <span>Recepción automática para negocios que atienden por WhatsApp</span>
+            <div>
+                <strong>Agenda</strong>
+                <strong>Confirma</strong>
+                <strong>Recuerda</strong>
+                <strong>Cotiza</strong>
+                <strong>Avisa</strong>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="problem-solution">
+    <div class="container">
+        <div class="problem-card">
+            <div>
+                <span class="section-kicker">El problema</span>
+                <h2>El dueño está atendiendo. El cliente está esperando respuesta.</h2>
+            </div>
+            <div class="pain-grid">
+                <div><strong>Chats perdidos</strong><span>“¿Tiene hora hoy?” queda sin respuesta.</span></div>
+                <div><strong>Ausencias</strong><span>El cliente olvida el turno si nadie recuerda.</span></div>
+                <div><strong>Ventas frías</strong><span>Preguntan productos o precios y no se registra nada.</span></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="product-strip">
+    <div class="container">
+        <div class="strip-card">
+            <div>
+                <span class="section-kicker">El producto</span>
+                <h2>Una recepción completa dentro del chat.</h2>
+            </div>
+            <div class="strip-items">
+                <span>Agenda</span>
+                <span>FAQs</span>
+                <span>Productos</span>
+                <span>Promos</span>
+                <span>Pedidos</span>
+                <span>Recordatorios</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-v2-section">
+    <div class="container">
+        <div class="section-title-row">
+            <div>
+                <span class="section-kicker">Qué vende HORUS</span>
+                <h2>No es un chatbot suelto. Es operación diaria automatizada.</h2>
+            </div>
+            <p>El dueño configura servicios, horarios, productos y respuestas. El cliente solo escribe por WhatsApp.</p>
+        </div>
+        <div class="capability-grid">
+            <article class="capability-card main-capability">
+                <div class="cap-icon">01</div>
+                <h3>Agenda inteligente</h3>
+                <p>Entiende frases naturales, valida horarios, evita solapes y confirma el turno.</p>
+                <div class="mini-terminal">
+                    <span>Cliente</span>
+                    <strong>“Quiero barba viernes en la tarde”</strong>
+                    <small>HORUS pide solo el dato faltante y agenda.</small>
+                </div>
+            </article>
+            <article class="capability-card">
+                <div class="cap-icon">02</div>
+                <h3>Ventas básicas</h3>
+                <p>Muestra productos, precios, stock y registra cotizaciones para cerrar después.</p>
+            </article>
+            <article class="capability-card">
+                <div class="cap-icon">03</div>
+                <h3>Promociones</h3>
+                <p>El cliente escribe “promos” y recibe ofertas activas con código o vigencia.</p>
+            </article>
+            <article class="capability-card">
+                <div class="cap-icon">04</div>
+                <h3>Autoservicio</h3>
+                <p>Consulta “mi turno”, confirma, cancela o reagenda sin esperar a una persona.</p>
+            </article>
+            <article class="capability-card">
+                <div class="cap-icon">05</div>
+                <h3>Dueño informado</h3>
+                <p>Alertas por WhatsApp, agenda del día, clientes nuevos y reporte diario.</p>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="workflow-section">
+    <div class="container">
+        <div class="workflow-panel">
+            <div class="workflow-copy">
+                <span class="section-kicker light">Flujo real</span>
+                <h2>Del mensaje al ingreso, sin perseguir chats.</h2>
+                <p>HORUS reduce el ida y vuelta: pregunta lo necesario, registra todo y avisa al dueño cuando hay algo que cerrar.</p>
+            </div>
+            <div class="workflow-steps">
+                <div><span>1</span><strong>Cliente escribe</strong><small>Turno, precio, producto o duda.</small></div>
+                <div><span>2</span><strong>HORUS valida</strong><small>Reglas del negocio, agenda y catálogo.</small></div>
+                <div><span>3</span><strong>Registra</strong><small>Turno, pedido, cotización o conversación.</small></div>
+                <div><span>4</span><strong>Recuerda</strong><small>Confirma asistencia y reduce ausencias.</small></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="landing-v2-section">
+    <div class="container">
+        <div class="section-title-row">
+            <div>
+                <span class="section-kicker">Para venderlo fácil</span>
+                <h2>Más barato que una recepcionista. Más directo que un link.</h2>
+            </div>
+        </div>
+        <div class="comparison-v2">
+            <div class="comparison-v2-head">
+                <span>Alternativa</span>
+                <span>Problema</span>
+                <span>HORUS</span>
+            </div>
+            <div>
+                <span>Recepcionista</span>
+                <span>Costo fijo alto y no siempre responde 24/7.</span>
+                <span>Automatiza lo repetitivo y avisa lo importante.</span>
+            </div>
+            <div>
+                <span>Link de reservas</span>
+                <span>Muchos clientes no quieren abrir formularios.</span>
+                <span>Agenda conversando dentro de WhatsApp.</span>
+            </div>
+            <div>
+                <span>WhatsApp Business normal</span>
+                <span>Ordena chats, pero no agenda ni recuerda solo.</span>
+                <span>Agenda, confirma, cotiza y registra.</span>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section id="planes" class="pricing-v2-section">
+    <div class="container">
+        <div class="pricing-heading">
+            <span class="section-kicker">Planes</span>
+            <h2>Precios pensados para negocios que no pueden pagar software pesado.</h2>
+        </div>
+        <div class="pricing-v2-grid">
+            <article class="plan-v2">
+                <span>Básico</span>
+                <h3>$19<small>/mes</small></h3>
+                <p>Para empezar con agenda y respuestas simples.</p>
+                <ul>
+                    <li>Agenda por WhatsApp</li>
+                    <li>Servicios y horarios</li>
+                    <li>FAQs básicas</li>
+                    <li>Recordatorio 2h antes</li>
+                </ul>
+            </article>
+            <article class="plan-v2 featured-plan-v2">
+                <div class="plan-ribbon">Recomendado</div>
+                <span>Pro</span>
+                <h3>$35<small>/mes</small></h3>
+                <p>La recepción virtual completa para vender la demo.</p>
+                <ul>
+                    <li>IA para frases naturales</li>
+                    <li>Recordatorios 24h y 2h</li>
+                    <li>Productos, promociones y cotizaciones</li>
+                    <li>Alertas y reporte al dueño</li>
+                </ul>
+            </article>
+            <article class="plan-v2">
+                <span>Premium</span>
+                <h3>$59<small>/mes</small></h3>
+                <p>Para negocios con varias personas o sucursales.</p>
+                <ul>
+                    <li>Multi-profesional</li>
+                    <li>Multi-sucursal</li>
+                    <li>Reactivación de clientes</li>
+                    <li>Soporte prioritario</li>
+                </ul>
+            </article>
+        </div>
+    </div>
+</section>
+
+<section class="final-v2">
+    <div class="container">
+        <div class="final-v2-card">
+            <div>
+                <span class="section-kicker light">Prueba comercial</span>
+                <h2>Muéstralo con QR en un negocio real y mide turnos/pedidos.</h2>
+                <p>El argumento no es “tenemos IA”. El argumento es: respondes más rápido, pierdes menos citas y capturas más ventas.</p>
+            </div>
+            {% if numero_demo %}
+                <a class="btn btn-electric btn-lg rounded-pill px-4" href="https://wa.me/{{ numero_demo }}?text=Hola" target="_blank" rel="noopener">Abrir WhatsApp</a>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

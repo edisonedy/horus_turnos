@@ -1,0 +1,38 @@
+{% extends 'base.html' %}
+{% block title %}Conversación - HORUS TURNOS{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="h3 mb-1">Conversación</h1>
+        <p class="text-muted mb-0">{{ conversacion.cliente.nombre|default:'Sin nombre' }} - {{ conversacion.cliente.telefono }}</p>
+    </div>
+    <span class="badge badge-soft rounded-pill px-3 py-2">{{ conversacion.get_estado_display }}</span>
+</div>
+<div class="row g-4">
+    <div class="col-lg-8">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Mensajes</div>
+            <div class="card-body">
+                {% for mensaje in mensajes %}
+                    <div class="mb-3 {% if mensaje.tipo == 'saliente' %}text-end{% endif %}">
+                        <div class="d-inline-block p-3 rounded-4 {% if mensaje.tipo == 'saliente' %}bg-success text-white{% else %}bg-light{% endif %}" style="max-width: 80%;">
+                            <div class="small opacity-75">{{ mensaje.get_tipo_display }} - {{ mensaje.fecha_creacion|date:'d/m/Y H:i' }}</div>
+                            <div>{{ mensaje.mensaje|linebreaksbr }}</div>
+                        </div>
+                    </div>
+                {% empty %}
+                    <div class="text-muted">Sin mensajes.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-4">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Datos de conversación</div>
+            <div class="card-body">
+                <pre class="payload">{{ conversacion.datos }}</pre>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,45 @@
+{% extends 'base.html' %}
+{% block title %}Turnos - HORUS TURNOS{% endblock %}
+{% block content %}
+<h1 class="h3 mb-1">Turnos</h1>
+<p class="text-muted">Vista operativa mínima. El cliente agenda, cancela y reagenda por WhatsApp.</p>
+<div class="row g-4">
+    <div class="col-lg-4">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">{% if turno_editando %}Editar turno{% else %}Nuevo turno manual{% endif %}</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    {% include 'includes/form_fields.html' %}
+                    <button class="btn btn-horus" type="submit">Guardar</button>
+                    {% if turno_editando %}<a href="{% url 'turnos' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+                </form>
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-8">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Últimos turnos</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Fecha</th><th>Cliente</th><th>Servicio</th><th>Profesional</th><th>Estado</th><th></th></tr></thead>
+                    <tbody>
+                    {% for turno in turnos %}
+                        <tr>
+                            <td>{{ turno.fecha_hora_inicio|date:'d/m/Y H:i' }}</td>
+                            <td>{{ turno.cliente.nombre|default:turno.cliente.telefono }}</td>
+                            <td>{{ turno.servicio.nombre }}</td>
+                            <td>{{ turno.profesional.nombre|default:'-' }}</td>
+                            <td><span class="badge text-bg-light">{{ turno.get_estado_display }}</span></td>
+                            <td><a href="{% url 'turno_editar' turno.id %}" class="btn btn-sm btn-outline-secondary">Editar</a></td>
+                        </tr>
+                    {% empty %}
+                        <tr><td colspan="6" class="text-muted">Sin turnos.</td></tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
