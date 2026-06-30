@@ -153,6 +153,23 @@ def procesar_mensaje_cliente(negocio, cliente, texto):
             return _pedir_cantidad_producto(negocio, cliente, conversacion, producto_directo)
         if _contiene_intencion(texto_normalizado, INTENCIONES_PRODUCTOS):
             return _iniciar_productos(negocio, cliente, conversacion)
+        # Escapes a agendar/reagendar/cancelar: funcionan en cualquier estado para que el
+        # cliente nunca quede atrapado (ej. eligiendo producto y decide agendar). Reagendar y
+        # cancelar van antes que agendar porque "reagendar" contiene "agendar".
+        en_flujo_agenda = conversacion.estado in {
+            ConversacionWhatsApp.Estado.ESPERANDO_SERVICIO,
+            ConversacionWhatsApp.Estado.ESPERANDO_FECHA,
+            ConversacionWhatsApp.Estado.ESPERANDO_HORA,
+            ConversacionWhatsApp.Estado.ESPERANDO_REAGENDAR_FECHA,
+            ConversacionWhatsApp.Estado.ESPERANDO_REAGENDAR_HORA,
+        }
+        if not en_flujo_agenda:
+            if _contiene_intencion(texto_normalizado, INTENCIONES_REAGENDAR) or _contiene_intencion(texto_normalizado, INTENCIONES_NO_PUEDE):
+                return _iniciar_reagendamiento(negocio, cliente, conversacion)
+            if _contiene_intencion(texto_normalizado, INTENCIONES_CANCELAR):
+                return _iniciar_cancelacion(negocio, cliente, conversacion)
+            if _contiene_intencion(texto_normalizado, INTENCIONES_AGENDAR):
+                return _iniciar_agendamiento(negocio, cliente, conversacion)
 
     if conversacion.datos.get('post_cancelacion'):
         if respuesta_afirmativa(texto):
