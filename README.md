@@ -35,15 +35,32 @@ Admin: daya / daya  (también edison / edison)
 
 ## Ejecutar proyecto
 
+**Solo el sitio (sin WhatsApp):**
+
 ```powershell
 .\.venv\Scripts\python.exe manage.py runserver
 ```
 
-También puedes ejecutar desde PyCharm usando `main.py`; sin argumentos levanta:
+**Todo en línea (sitio + bot de WhatsApp por túnel), un comando:**
 
-```text
-http://127.0.0.1:8000/
+```powershell
+powershell -ExecutionPolicy Bypass -File scripts\iniciar.ps1
 ```
+
+Ese script levanta el servidor en el puerto 8060, abre el túnel `cloudflared` y
+**reconecta el webhook de WhatsApp en Meta automáticamente** (con el token guardado),
+así que no hay que entrar a Meta cuando el túnel cambia de URL. Requiere tener
+`cloudflared` instalado.
+
+Si solo cambió la URL del túnel y quieres reconectar el webhook a mano:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py registrar_webhook https://TU-TUNEL/whatsapp/webhook/
+```
+
+### Entrar a configurar
+- Panel admin: **http://127.0.0.1:8060/panel/** — usuario `daya` / `daya` (o `edison` / `edison`).
+- Configura el negocio, servicios, horarios, productos y el **WhatsApp API** desde el menú lateral.
 
 Entrar al panel:
 
