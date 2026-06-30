@@ -21,14 +21,16 @@ usuario: edison
 contraseña: edison
 ```
 
-Negocio demo:
+Negocio (único, instalación single-tenant):
 
 ```text
-Barbería Demo HORUS
-Servicios: Corte de cabello, Barba, Limpieza facial
-Productos: Shampoo profesional, Cera para peinar, Kit barba
-Promociones: Combo corte + barba, Producto recomendado
-Horario: lunes a sábado, 09:00 a 18:00
+Daya Facial Care — estética facial, Queens NY
+Servicios: Limpieza Facial, Acné, Hiperpigmentación, Rejuvenecimiento,
+           Depilación Láser, Lifting de Pestañas, Cejas 3D, Depilación con Cera
+Productos: Crema Anti-Pigment, Vitamina C, Tea Tree Oil, Kit Green Tea,
+           Kit piel Acneica, Colágeno
+Horario: Lun–Vie 10:00–20:00, Sáb y Dom 11:00–18:00
+Admin: daya / daya  (también edison / edison)
 ```
 
 ## Ejecutar proyecto
@@ -73,11 +75,33 @@ Modelo de negocio y estrategia comercial:
 docs/modelo_negocio.md
 ```
 
-## Si necesitas recrear demo
+## Cliente en producción: Daya Facial Care
+
+Esta instalación está personalizada para un único negocio: **Daya Facial Care**
+(Queens, NY). Para cargar/actualizar sus datos reales (servicios, productos,
+horarios, promociones) y dejarlo como negocio único activo:
+
+```powershell
+.\.venv\Scripts\python.exe manage.py crear_daya
+```
+
+Esto crea el administrador y desactiva cualquier otro negocio (single-tenant):
+
+```text
+usuario: daya
+contraseña: daya
+```
+
+La landing pública (`/`) toma su marca, servicios, productos, horarios, dirección
+y botón de WhatsApp directamente del negocio activo. Tras iniciar sesión, el panel
+incluye **Reportes** (`/panel/reportes/`) con filtro por rango de fechas, métricas
+de turnos, ventas y clientes, y exportación a CSV.
+
+## Si necesitas recargar los datos del negocio
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py migrate
-.\.venv\Scripts\python.exe manage.py crear_demo_horus
+.\.venv\Scripts\python.exe manage.py crear_daya
 ```
 
 ## WhatsApp Cloud API
@@ -108,9 +132,15 @@ phone_number_id
 business_account_id
 access_token
 verify_token
+app_secret
 numero_whatsapp
 activo=True
 ```
+
+`app_secret` es el App Secret de la app de Meta. Si lo defines (en el panel o en
+`WHATSAPP_APP_SECRET` del `.env`), el webhook valida la firma `X-Hub-Signature-256`
+de cada POST y rechaza peticiones falsas. Si lo dejas vacío, el webhook funciona
+igual pero sin verificar la firma (se registra una advertencia en los logs).
 
 El sistema envía mensajes usando:
 
@@ -127,7 +157,7 @@ https://graph.facebook.com/v20.0/{phone_number_id}/messages
 ```python
 from apps.negocios.models import Negocio
 from apps.whatsapp_api.services import WhatsAppService
-negocio = Negocio.objects.get(slug='barberia-demo-horus')
+negocio = Negocio.objects.get(slug='daya-facial-care')
 WhatsAppService(negocio=negocio).enviar_texto('593XXXXXXXXX', 'Prueba HORUS TURNOS')
 ```
 
@@ -165,9 +195,9 @@ SI
 
 ```text
 servicios
-precio corte
+precio limpieza facial
 productos
-tienen cera para peinar
+tienen vitamina c
 formas de pago
 promociones
 mi turno
@@ -178,12 +208,12 @@ humano
 Ejemplos de lenguaje natural como recepcionista:
 
 ```text
-Quiero corte mañana a las 10
-¿Hay espacio hoy para barba?
+Quiero una limpieza facial el sábado en la mañana
+¿Hay espacio hoy para lifting de pestañas?
 No puedo ir, quiero cambiar mi cita
-¿Cuánto cuesta limpieza facial?
+¿Cuánto cuesta el diseño de cejas?
 ¿Dónde están ubicados?
-Quiero comprar cera para peinar
+Quiero comprar la Vitamina C
 Quiero hablar con una persona
 ```
 
@@ -239,10 +269,20 @@ Enviar recordatorios vencidos:
 .\.venv\Scripts\python.exe manage.py enviar_recordatorios
 ```
 
-Worker local para generar y enviar recordatorios automáticamente mientras esté abierto:
+Worker local para generar y enviar recordatorios automáticamente mientras esté abierto (solo para desarrollo):
 
 ```powershell
 .\.venv\Scripts\python.exe manage.py procesar_recordatorios_loop --intervalo 60
+```
+
+En producción no uses el loop manual (depende de una ventana abierta). Usa el
+script `scripts/procesar_recordatorios.ps1` registrado en el Programador de
+tareas de Windows para que corra cada 5 minutos aunque nadie tenga sesión:
+
+```powershell
+schtasks /Create /TN "HorusRecordatorios" /SC MINUTE /MO 5 ^
+  /TR "powershell -NoProfile -ExecutionPolicy Bypass -File C:\proyectos\horus_turnos\scripts\procesar_recordatorios.ps1" ^
+  /RL HIGHEST /F
 ```
 
 Enviar reporte diario al dueño:
@@ -254,7 +294,7 @@ Enviar reporte diario al dueño:
 Enviar reporte de un negocio específico:
 
 ```powershell
-.\.venv\Scripts\python.exe manage.py enviar_reporte_diario --negocio barberia-demo-horus
+.\.venv\Scripts\python.exe manage.py enviar_reporte_diario --negocio daya-facial-care
 ```
 
 Programación recomendada:
@@ -285,6 +325,12 @@ BOT_USA_OPENAI=True
 El archivo `apps/bot_turnos/ai.py` usa OpenAI solo para interpretar intención, servicio, fecha y hora. La creación, cancelación y reagendamiento siguen protegidos por la lógica del sistema.
 
 Sin `OPENAI_API_KEY`, el bot sigue funcionando con reglas locales.
+
+## Logs
+
+El sistema escribe logs en `logs/horus.log` (rotación automática, 5 MB x 5
+archivos) y también a consola. Loggers principales: `horus.whatsapp` (webhook y
+envíos) y `horus.recordatorios`. Ajusta el nivel con `LOG_LEVEL` en `.env`.
 
 ## Validación
 

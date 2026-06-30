@@ -47,30 +47,55 @@ def timezone_actual():
 
 
 def parsear_fecha_natural(texto, referencia=None):
+    """Extrae una fecha de una frase natural.
+
+    Tolera texto adicional como horas o muletillas. Ejemplos válidos:
+    "viernes a las 10 de la mañana", "para mañana", "el 10/06/2026 en la tarde".
+    """
     referencia = referencia or timezone.localdate()
     valor_original = (texto or '').strip()
     valor = normalizar_texto(valor_original)
 
-    if valor in {'hoy', 'today'}:
-        return referencia
-    if valor in {'manana', 'mañana', 'tomorrow'}:
-        return referencia + timedelta(days=1)
-    if valor in {'pasado manana', 'pasado mañana'}:
-        return referencia + timedelta(days=2)
-
-    if valor in DIAS_SEMANA:
-        objetivo = DIAS_SEMANA[valor]
-        dias = (objetivo - referencia.weekday()) % 7
-        if dias == 0:
-            dias = 7
-        return referencia + timedelta(days=dias)
-
-    formatos = ['%d/%m/%Y', '%d-%m-%Y', '%Y-%m-%d', '%d/%m/%y']
-    for formato in formatos:
+    # 1) Fecha completa y exacta (incluye ISO 'YYYY-MM-DD' que devuelve la IA).
+    #    Se intenta ANTES que el regex suelto para no malinterpretar el ISO.
+    for formato in ('%Y-%m-%d', '%d/%m/%Y', '%d-%m-%Y', '%d/%m/%y', '%Y/%m/%d'):
         try:
             return datetime.strptime(valor_original, formato).date()
         except ValueError:
             continue
+
+    palabras = re.findall(r'[a-z]+', valor)
+
+    # 2) Día de la semana (prioridad alta: "viernes ... de la mañana" -> viernes)
+    for nombre_dia, indice in DIAS_SEMANA.items():
+        if nombre_dia in palabras:
+            dias = (indice - referencia.weekday()) % 7
+            if dias == 0:
+                dias = 7
+            return referencia + timedelta(days=dias)
+
+    # 3) Relativas
+    if 'pasado' in palabras and 'manana' in palabras:
+        return referencia + timedelta(days=2)
+    if 'hoy' in palabras or 'today' in palabras:
+        return referencia
+    # "mañana" = día siguiente, salvo cuando es franja horaria ("de/por/en la mañana")
+    if ('manana' in palabras or 'tomorrow' in palabras) and not re.search(r'la manana', valor):
+        return referencia + timedelta(days=1)
+
+    # 4) Fecha dd/mm[/aaaa] embebida en una frase ("el 10/07 en la tarde").
+    coincidencia = re.search(r'\b(\d{1,2})[/-](\d{1,2})(?:[/-](\d{2,4}))?\b', valor_original)
+    if coincidencia:
+        dia, mes = int(coincidencia.group(1)), int(coincidencia.group(2))
+        anio = coincidencia.group(3)
+        anio = int(anio) if anio else referencia.year
+        if anio < 100:
+            anio += 2000
+        try:
+            return date(anio, mes, dia)
+        except ValueError:
+            pass
+
     return None
 
 

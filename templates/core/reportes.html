@@ -1,0 +1,108 @@
+{% extends 'base.html' %}
+{% block title %}Reportes - {{ negocio.nombre|default:'HORUS' }}{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-4">
+    <div>
+        <h1 class="h3 mb-1">Reportes</h1>
+        <p class="text-muted mb-0">Resumen de turnos, ventas y clientes en el rango seleccionado.</p>
+    </div>
+    {% if negocio %}<span class="badge badge-soft rounded-pill px-3 py-2">{{ negocio.nombre }}</span>{% endif %}
+</div>
+
+{% if not negocio %}
+<div class="alert alert-warning">Primero configura tu negocio.</div>
+{% else %}
+<div class="card table-card mb-4">
+    <div class="card-body">
+        <form method="get" class="row g-3 align-items-end">
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label small text-muted">Desde</label>
+                <input type="date" name="desde" value="{{ desde|date:'Y-m-d' }}" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3">
+                <label class="form-label small text-muted">Hasta</label>
+                <input type="date" name="hasta" value="{{ hasta|date:'Y-m-d' }}" class="form-control">
+            </div>
+            <div class="col-sm-4 col-md-3 d-flex gap-2">
+                <button type="submit" class="btn btn-horus">Aplicar</button>
+                <a class="btn btn-outline-dark" href="?desde={{ desde|date:'Y-m-d' }}&hasta={{ hasta|date:'Y-m-d' }}&export=csv">Exportar CSV</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg-3">
+        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Turnos</div><div class="display-6 fw-bold">{{ turnos_total }}</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Ingresos servicios (atendidos)</div><div class="display-6 fw-bold">${{ ingresos_servicios }}</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Ventas productos</div><div class="display-6 fw-bold">${{ ventas_productos }}</div></div></div>
+    </div>
+    <div class="col-6 col-lg-3">
+        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Clientes nuevos</div><div class="display-6 fw-bold">{{ clientes_nuevos }}</div></div></div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-lg-6">
+        <div class="card table-card h-100">
+            <div class="card-header bg-white fw-semibold">Turnos por estado</div>
+            <div class="card-body">
+                {% for fila in turnos_por_estado %}
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span>{{ fila.label }}</span>
+                        <strong>{{ fila.total }}</strong>
+                    </div>
+                {% empty %}
+                    <div class="text-muted">Sin turnos en el rango.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+    <div class="col-lg-6">
+        <div class="card table-card h-100">
+            <div class="card-header bg-white fw-semibold">Servicios más solicitados</div>
+            <div class="card-body">
+                {% for fila in top_servicios %}
+                    <div class="d-flex justify-content-between border-bottom py-2">
+                        <span>{{ fila.servicio__nombre }}</span>
+                        <strong>{{ fila.total }}</strong>
+                    </div>
+                {% empty %}
+                    <div class="text-muted">Sin datos.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card table-card">
+    <div class="card-header bg-white fw-semibold d-flex justify-content-between">
+        <span>Detalle de turnos</span>
+        <small class="text-muted">{{ desde|date:'d/m/Y' }} – {{ hasta|date:'d/m/Y' }}</small>
+    </div>
+    <div class="table-responsive">
+        <table class="table align-middle mb-0">
+            <thead><tr><th>Fecha</th><th>Hora</th><th>Cliente</th><th>Servicio</th><th>Estado</th><th class="text-end">Precio</th></tr></thead>
+            <tbody>
+            {% for turno in turnos %}
+                <tr>
+                    <td>{{ turno.fecha_hora_inicio|date:'d/m/Y' }}</td>
+                    <td>{{ turno.fecha_hora_inicio|time:'H:i' }}</td>
+                    <td>{{ turno.cliente.nombre|default:turno.cliente.telefono }}</td>
+                    <td>{{ turno.servicio.nombre }}</td>
+                    <td><span class="badge text-bg-light">{{ turno.get_estado_display }}</span></td>
+                    <td class="text-end">${{ turno.servicio.precio }}</td>
+                </tr>
+            {% empty %}
+                <tr><td colspan="6" class="text-muted">Sin turnos en el rango seleccionado.</td></tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endif %}
+{% endblock %}

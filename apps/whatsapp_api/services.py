@@ -1,3 +1,5 @@
+import logging
+
 import requests
 from django.conf import settings
 from django.utils import timezone
@@ -5,6 +7,8 @@ from django.utils import timezone
 from apps.agenda.models import Cliente
 from apps.core.utils import normalizar_telefono
 from .models import ConfiguracionWhatsApp, MensajeWhatsApp
+
+logger = logging.getLogger('horus.whatsapp')
 
 TOKEN_PLACEHOLDER = 'PEGAR_AQUI_TOKEN_NUEVO_GENERADO_EN_META'
 
@@ -65,8 +69,15 @@ class WhatsAppService:
                 timeout=settings.WHATSAPP_REQUEST_TIMEOUT,
             )
         except requests.RequestException as exc:
+            logger.error('Fallo de red al enviar WhatsApp (to=%s): %s', payload.get('to'), exc)
             return {'ok': False, 'status_code': None, 'data': {}, 'error': str(exc)}
-        return self.procesar_respuesta(response)
+        resultado = self.procesar_respuesta(response)
+        if not resultado.get('ok'):
+            logger.error(
+                'WhatsApp respondió error (to=%s, status=%s): %s',
+                payload.get('to'), resultado.get('status_code'), resultado.get('error'),
+            )
+        return resultado
 
     def _registrar_salida(self, telefono, mensaje, resultado, turno=None):
         if not self.negocio:

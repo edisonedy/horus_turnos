@@ -1,6 +1,10 @@
+from datetime import timedelta
+
+from django.db.models import Count, Sum
 from django.utils import timezone
-from apps.agenda.models import Turno
-from apps.whatsapp_api.models import ConfiguracionWhatsApp, ErrorWebhookWhatsApp, RecordatorioWhatsApp
+
+from apps.agenda.models import PedidoWhatsApp, Turno
+from apps.whatsapp_api.models import ErrorWebhookWhatsApp, RecordatorioWhatsApp
 
 
 def rango_dia(fecha=None):
@@ -20,8 +24,6 @@ def resumen_dashboard(negocio):
             'errores_whatsapp': [],
             'recordatorios_pendientes': [],
             'pedidos_recientes': [],
-            'onboarding': [],
-            'onboarding_porcentaje': 0,
         }
 
     inicio, fin = rango_dia()
@@ -32,7 +34,6 @@ def resumen_dashboard(negocio):
         estado: turnos_hoy_qs.filter(estado=estado).count()
         for estado, _ in Turno.Estado.choices
     }
-    onboarding = estado_onboarding(negocio)
     return {
         'turnos_hoy': turnos_hoy_qs.order_by('fecha_hora_inicio')[:20],
         'turnos_por_estado': turnos_por_estado,
@@ -43,62 +44,54 @@ def resumen_dashboard(negocio):
             'turno', 'turno__cliente', 'turno__servicio'
         )[:8],
         'pedidos_recientes': negocio.pedidos_whatsapp.select_related('cliente', 'producto').order_by('-fecha_creacion')[:8],
-        'onboarding': onboarding,
-        'onboarding_porcentaje': porcentaje_onboarding(onboarding),
     }
 
 
-def estado_onboarding(negocio):
-    whatsapp = ConfiguracionWhatsApp.objects.filter(negocio=negocio, activo=True).first()
-    config_bot = getattr(negocio, 'configuracion_bot', None)
-    return [
-        {
-            'titulo': 'Negocio configurado',
-            'descripcion': 'Nombre, teléfono y dirección listos.',
-            'completo': bool(negocio.nombre and negocio.telefono_principal),
-            'url_name': 'configuracion_negocio',
-        },
-        {
-            'titulo': 'Servicios cargados',
-            'descripcion': 'Al menos un servicio activo con precio y duración.',
-            'completo': negocio.servicios.filter(activo=True).exists(),
-            'url_name': 'servicios',
-        },
-        {
-            'titulo': 'Horarios disponibles',
-            'descripcion': 'Días y horas de atención para calcular disponibilidad.',
-            'completo': negocio.horarios_atencion.filter(activo=True).exists(),
-            'url_name': 'horarios',
-        },
-        {
-            'titulo': 'Catálogo comercial',
-            'descripcion': 'Productos o preguntas frecuentes para vender y responder dudas por WhatsApp.',
-            'completo': negocio.productos.filter(activo=True).exists() or negocio.preguntas_frecuentes.filter(activo=True).exists(),
-            'url_name': 'productos',
-        },
-        {
-            'titulo': 'WhatsApp conectado',
-            'descripcion': 'Token, phone number id y webhook configurados.',
-            'completo': bool(whatsapp and whatsapp.phone_number_id and whatsapp.access_token),
-            'url_name': 'configuracion_whatsapp',
-        },
-        {
-            'titulo': 'Dueño recibirá alertas',
-            'descripcion': 'Notificaciones internas y comandos administrativos.',
-            'completo': bool(config_bot and config_bot.notificar_dueno_whatsapp and config_bot.telefono_notificacion_dueno),
-            'url_name': 'configuracion_negocio',
-        },
-        {
-            'titulo': 'Demo probada',
-            'descripcion': 'Ya entró al menos una conversación por WhatsApp.',
-            'completo': negocio.conversaciones_whatsapp.exists(),
-            'url_name': 'conversaciones',
-        },
+def rango_fechas(desde=None, hasta=None):
+    """Normaliza un rango de fechas a datetimes aware. Por defecto, últimos 30 días."""
+    hoy = timezone.localdate()
+    hasta = hasta or hoy
+    desde = desde or (hasta - timedelta(days=29))
+    inicio = timezone.make_aware(timezone.datetime.combine(desde, timezone.datetime.min.time()))
+    fin = timezone.make_aware(timezone.datetime.combine(hasta, timezone.datetime.max.time()))
+    return desde, hasta, inicio, fin
+
+
+def reporte_negocio(negocio, desde=None, hasta=None):
+    """Métricas del negocio en un rango de fechas para la página de reportes."""
+    desde, hasta, inicio, fin = rango_fechas(desde, hasta)
+    base = {'desde': desde, 'hasta': hasta}
+    if not negocio:
+        return {**base, 'turnos': [], 'turnos_total': 0, 'turnos_por_estado': [],
+                'ingresos_servicios': 0, 'top_servicios': [], 'pedidos_total': 0,
+                'ventas_productos': 0, 'clientes_nuevos': 0}
+
+    turnos = (Turno.objects.filter(negocio=negocio, fecha_hora_inicio__range=(inicio, fin))
+              .select_related('cliente', 'servicio').order_by('fecha_hora_inicio'))
+
+    etiquetas_estado = dict(Turno.Estado.choices)
+    turnos_por_estado = [
+        {'estado': fila['estado'], 'label': etiquetas_estado.get(fila['estado'], fila['estado']), 'total': fila['total']}
+        for fila in turnos.values('estado').annotate(total=Count('id')).order_by('-total')
     ]
+    atendidos = turnos.filter(estado=Turno.Estado.ATENDIDO)
+    ingresos_servicios = atendidos.aggregate(t=Sum('servicio__precio'))['t'] or 0
+    top_servicios = list(turnos.values('servicio__nombre').annotate(total=Count('id')).order_by('-total')[:5])
+
+    pedidos = PedidoWhatsApp.objects.filter(negocio=negocio, fecha_creacion__range=(inicio, fin))
+    ventas_productos = pedidos.exclude(estado=PedidoWhatsApp.Estado.CANCELADO).aggregate(t=Sum('total'))['t'] or 0
+    clientes_nuevos = negocio.clientes.filter(fecha_creacion__range=(inicio, fin)).count()
+
+    return {
+        **base,
+        'turnos': turnos,
+        'turnos_total': turnos.count(),
+        'turnos_por_estado': turnos_por_estado,
+        'ingresos_servicios': ingresos_servicios,
+        'top_servicios': top_servicios,
+        'pedidos_total': pedidos.count(),
+        'ventas_productos': ventas_productos,
+        'clientes_nuevos': clientes_nuevos,
+    }
 
 
-def porcentaje_onboarding(pasos):
-    if not pasos:
-        return 0
-    completados = sum(1 for paso in pasos if paso['completo'])
-    return round((completados / len(pasos)) * 100)

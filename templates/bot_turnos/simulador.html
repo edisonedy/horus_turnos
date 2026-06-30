@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+{% block title %}Simulador del bot · {{ negocio.nombre|default:'Daya Facial Care' }}{% endblock %}
+{% block extra_css %}
+<style>
+    .sim-wrap { max-width: 520px; margin: 0 auto; }
+    .sim-phone { background: #075E54; border-radius: 22px 22px 0 0; color: #fff; padding: 14px 18px; display: flex; align-items: center; gap: 12px; }
+    .sim-phone .av { width: 40px; height: 40px; border-radius: 50%; background: #128C7E; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .sim-phone strong { display: block; line-height: 1.1; } .sim-phone small { opacity: .8; }
+    .sim-body { background: #ECE5DD; height: 60vh; min-height: 380px; overflow-y: auto; padding: 16px; }
+    .sim-msg { max-width: 80%; padding: 8px 12px; border-radius: 10px; margin-bottom: 8px; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 1px 1px rgba(0,0,0,.1); font-size: .92rem; line-height: 1.4; }
+    .sim-msg.cliente { background: #DCF8C6; margin-left: auto; border-top-right-radius: 2px; }
+    .sim-msg.bot { background: #fff; margin-right: auto; border-top-left-radius: 2px; }
+    .sim-input { display: flex; gap: 8px; padding: 12px; background: #f0f0f0; border-radius: 0 0 22px 22px; }
+    .sim-input input { flex: 1; border: 1px solid #ddd; border-radius: 999px; padding: 10px 16px; outline: none; }
+    .sim-input button { border: none; background: #128C7E; color: #fff; border-radius: 999px; padding: 10px 18px; }
+    .sim-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 12px 0; justify-content: center; }
+    .sim-chips button { border: 1px solid #cdd; background: #fff; border-radius: 999px; padding: 5px 12px; font-size: .82rem; cursor: pointer; }
+    .sim-chips button:hover { background: #128C7E; color: #fff; border-color: #128C7E; }
+    .sim-typing { font-size: .8rem; color: #888; font-style: italic; margin-bottom: 8px; }
+</style>
+{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3">
+    <div>
+        <h1 class="h3 mb-1">Simulador del bot</h1>
+        <p class="text-muted mb-0">Prueba el flujo de WhatsApp (agendar, productos, reagendar…) sin conectar Meta. Las respuestas son las mismas que recibiría una clienta real.</p>
+    </div>
+    <button id="btnReset" class="btn btn-sm btn-outline-danger rounded-pill">Reiniciar prueba</button>
+</div>
+
+{% if not negocio %}
+<div class="alert alert-warning">Primero configura el negocio.</div>
+{% else %}
+<div class="sim-wrap">
+    <div class="sim-phone">
+        <div class="av">💆‍♀️</div>
+        <div><strong>{{ negocio.nombre }}</strong><small>en línea · simulación</small></div>
+    </div>
+    <div class="sim-body" id="chat"></div>
+    <div class="sim-input">
+        <input type="text" id="txt" placeholder="Escribe un mensaje…" autocomplete="off">
+        <button id="btnSend">Enviar</button>
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:10px;font-size:.85rem;color:#555;">
+        <input type="checkbox" id="modoAgente">
+        🧪 Modo IA (agente con memoria) — experimental, Opción B
+    </label>
+</div>
+
+<div class="sim-chips">
+    <button data-msg="Hola">Hola</button>
+    <button data-msg="agendar">Agendar</button>
+    <button data-msg="servicios">Servicios</button>
+    <button data-msg="productos">Productos</button>
+    <button data-msg="promociones">Promociones</button>
+    <button data-msg="mi turno">Mi turno</button>
+    <button data-msg="ubicación">Ubicación</button>
+</div>
+
+{% csrf_token %}
+<script>
+(function () {
+    var chat = document.getElementById('chat');
+    var txt = document.getElementById('txt');
+    var csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+
+    function add(text, who) {
+        var d = document.createElement('div');
+        d.className = 'sim-msg ' + who;
+        d.textContent = text;
+        chat.appendChild(d);
+        chat.scrollTop = chat.scrollHeight;
+        return d;
+    }
+
+    function send(text) {
+        if (!text.trim()) return;
+        add(text, 'cliente');
+        txt.value = '';
+        var typing = document.createElement('div');
+        typing.className = 'sim-typing'; typing.textContent = 'escribiendo…';
+        chat.appendChild(typing); chat.scrollTop = chat.scrollHeight;
+
+        var modo = document.getElementById('modoAgente').checked ? 'agente' : 'reglas';
+        fetch('{% url "simulador_bot_mensaje" %}', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf },
+            body: JSON.stringify({ texto: text, modo: modo })
+        }).then(function (r) { return r.json(); })
+          .then(function (data) {
+              typing.remove();
+              add(data.reply || data.error || '(sin respuesta)', 'bot');
+          }).catch(function () { typing.remove(); add('Error de conexión.', 'bot'); });
+    }
+
+    document.getElementById('btnSend').addEventListener('click', function () { send(txt.value); });
+    txt.addEventListener('keydown', function (e) { if (e.key === 'Enter') send(txt.value); });
+    document.querySelectorAll('.sim-chips button').forEach(function (b) {
+        b.addEventListener('click', function () { send(b.dataset.msg); });
+    });
+    document.getElementById('btnReset').addEventListener('click', function () {
+        fetch('{% url "simulador_bot_reset" %}', { method: 'POST', headers: { 'X-CSRFToken': csrf, 'X-Requested-With': 'XMLHttpRequest' } })
+            .then(function () { chat.innerHTML = ''; add('— Conversación reiniciada —', 'bot'); });
+    });
+
+    add('👋 Escribe "Hola" o usa los botones de abajo para empezar.', 'bot');
+})();
+</script>
+{% endif %}
+{% endblock %}

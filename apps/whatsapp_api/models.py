@@ -7,6 +7,11 @@ class ConfiguracionWhatsApp(models.Model):
     business_account_id = models.CharField(max_length=128, blank=True)
     access_token = models.TextField()
     verify_token = models.CharField(max_length=255)
+    app_secret = models.CharField(
+        max_length=255,
+        blank=True,
+        help_text='App Secret de la app de Meta. Si se define, se valida la firma X-Hub-Signature-256 del webhook.',
+    )
     numero_whatsapp = models.CharField(max_length=32, blank=True)
     activo = models.BooleanField(default=True)
 

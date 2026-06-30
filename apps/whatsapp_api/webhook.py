@@ -1,4 +1,5 @@
 import json
+import logging
 
 from django.conf import settings
 from django.http import HttpResponse, HttpResponseForbidden, JsonResponse
@@ -10,7 +11,14 @@ from apps.bot_turnos.bot import procesar_mensaje_entrante
 from .models import ConfiguracionWhatsApp, ErrorWebhookWhatsApp, MensajeWhatsApp
 from .selectors import configuracion_activa_por_phone_number_id
 from .services import actualizar_estado_mensaje_desde_status
-from .utils import extraer_mensajes_payload, extraer_phone_number_id, extraer_statuses_payload
+from .utils import (
+    extraer_mensajes_payload,
+    extraer_phone_number_id,
+    extraer_statuses_payload,
+    firma_webhook_valida,
+)
+
+logger = logging.getLogger('horus.whatsapp')
 
 
 @csrf_exempt
@@ -37,10 +45,16 @@ def validar_webhook(request):
 def recibir_webhook(request):
     payload = {}
     configuracion = None
+    cuerpo = request.body
     try:
-        payload = json.loads(request.body.decode('utf-8') or '{}')
+        payload = json.loads(cuerpo.decode('utf-8') or '{}')
         phone_number_id = extraer_phone_number_id(payload)
         configuracion = configuracion_activa_por_phone_number_id(phone_number_id)
+
+        respuesta_firma = _verificar_firma(request, cuerpo, configuracion, phone_number_id)
+        if respuesta_firma is not None:
+            return respuesta_firma
+
         if not configuracion:
             ErrorWebhookWhatsApp.objects.create(
                 phone_number_id=phone_number_id,
@@ -75,6 +89,7 @@ def recibir_webhook(request):
 
         return JsonResponse({'status': 'ok'})
     except Exception as exc:
+        logger.exception('Error procesando webhook WhatsApp: %s', exc)
         ErrorWebhookWhatsApp.objects.create(
             negocio=configuracion.negocio if configuracion else None,
             phone_number_id=extraer_phone_number_id(payload) if payload else '',
@@ -82,3 +97,33 @@ def recibir_webhook(request):
             payload=payload,
         )
         return JsonResponse({'status': 'error'}, status=500)
+
+
+def _verificar_firma(request, cuerpo, configuracion, phone_number_id):
+    """Valida la firma del webhook. Devuelve una respuesta HTTP si debe cortarse
+    el procesamiento, o None si la petición puede continuar.
+
+    Usa el App Secret del negocio (o el global de settings como respaldo). Si no
+    hay ningún App Secret configurado, se omite la validación para no romper
+    instalaciones que aún no lo hayan configurado, pero se deja constancia en log.
+    """
+    app_secret = (configuracion.app_secret if configuracion else '') or settings.WHATSAPP_APP_SECRET
+    if not app_secret:
+        logger.warning(
+            'Webhook WhatsApp sin App Secret configurado (phone_number_id=%s); firma no verificada.',
+            phone_number_id,
+        )
+        return None
+
+    cabecera_firma = request.headers.get('X-Hub-Signature-256', '')
+    if firma_webhook_valida(cuerpo, cabecera_firma, app_secret):
+        return None
+
+    logger.warning('Firma de webhook WhatsApp inválida (phone_number_id=%s).', phone_number_id)
+    ErrorWebhookWhatsApp.objects.create(
+        negocio=configuracion.negocio if configuracion else None,
+        phone_number_id=phone_number_id or '',
+        error='Firma X-Hub-Signature-256 inválida o ausente.',
+        payload={},
+    )
+    return HttpResponseForbidden('Firma inválida')

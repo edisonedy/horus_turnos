@@ -1,292 +1,293 @@
 {% extends 'base.html' %}
 {% load static %}
-{% block title %}HORUS - Recepcionista IA por WhatsApp{% endblock %}
+{% block title %}Daya Facial Care · Belleza y cuidado de la piel en Queens, NY{% endblock %}
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/landing.css' %}?v=20260611-5">
+<link rel="stylesheet" href="{% static 'css/daya.css' %}?v=20260629-3">
 {% endblock %}
 {% block content %}
-<section class="landing-v2">
-    <div class="hero-noise"></div>
-    <div class="hero-grid"></div>
-    <div class="container position-relative">
-        <div class="hero-shell">
-            <div class="hero-copy-block">
-                <div class="brand-pill">
-                    <span class="brand-mark">H</span>
-                    Recepcionista IA para WhatsApp
+{% with wa_link='https://wa.me/'|add:numero_wa|add:'?text=Hola%20Daya,%20quiero%20agendar%20una%20cita%20%F0%9F%92%86' %}
+<div class="daya-landing">
+
+    <!-- NAV -->
+    <nav class="daya-nav" id="dayaNav">
+        <a class="brand brand-logo" href="#inicio">
+            <img src="{% static logo_img %}" alt="Daya Facial Care" class="nav-logo">
+            <span>Daya Facial Care<small>Queens · NY</small></span>
+        </a>
+        <div class="links" id="navLinks">
+            <a href="#sobre">Sobre mí</a>
+            <a href="#tratamientos">Tratamientos</a>
+            <a href="#productos">Productos</a>
+            <a href="#galeria">Galería</a>
+            <a href="#contacto">Contacto</a>
+            {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">Agendar</a>{% endif %}
+        </div>
+        <button class="burger" id="burger" aria-label="Menú">☰</button>
+    </nav>
+
+    <!-- HERO -->
+    <header class="daya-hero" id="inicio">
+        <div class="blob b1"></div><div class="blob b2"></div>
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <span class="daya-kicker reveal">Estética facial · +7 años</span>
+                    <h1 class="reveal d1">Tu piel merece <span class="italic-accent">brillar</span> con naturalidad</h1>
+                    <p class="lead reveal d2">
+                        Tratamientos faciales y estéticos personalizados que realzan tu belleza
+                        y tu confianza, en un ambiente cálido y profesional con Erika Dayana.
+                    </p>
+                    <div class="daya-hero-actions reveal d3">
+                        {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">✆ Agenda tu cita</a>{% endif %}
+                        <a class="btn-daya-ghost" href="#tratamientos">Ver tratamientos</a>
+                    </div>
+                    <div class="hero-trust reveal d4">
+                        <div><strong>+7</strong><span>Años de experiencia</span></div>
+                        <div><strong>+1.5k</strong><span>Clientas felices</span></div>
+                        <div><strong>5.0★</strong><span>Satisfacción</span></div>
+                    </div>
                 </div>
-                <h1><span class="electric-word">Agenda, vende</span> y responde aunque el negocio esté ocupado.</h1>
-                <p>
-                    HORUS convierte WhatsApp en una recepción automática para negocios pequeños:
-                    turnos, recordatorios, productos, promociones, preguntas frecuentes y alertas al dueño.
-                </p>
-                <div class="audience-pills">
-                    <span>Barberías</span>
-                    <span>Clínicas</span>
-                    <span>Spa</span>
-                    <span>Veterinarias</span>
-                    <span>Talleres</span>
+                <div class="col-lg-6">
+                    <div class="hero-visual reveal d2">
+                        <div class="ring"></div>
+                        <div class="frame"><img src="{% static hero_img %}" alt="Erika Dayana en Daya Facial Care" loading="eager"></div>
+                        <div class="hero-float-card c1"><div class="dot">🌿</div><div><strong>Productos eco</strong><span>Seguros para tu piel</span></div></div>
+                        <div class="hero-float-card c2"><div class="dot">💆‍♀️</div><div><strong>100% personalizado</strong><span>Según tu tipo de piel</span></div></div>
+                    </div>
                 </div>
-                <div class="hero-actions">
-                    {% if numero_demo %}
-                        <a class="btn btn-electric btn-lg rounded-pill px-4" href="https://wa.me/{{ numero_demo }}?text=Hola" target="_blank" rel="noopener">
-                            Probar demo por WhatsApp
-                        </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MARQUEE -->
+    <div class="daya-marquee">
+        <div class="track">
+            {% for i in "12" %}
+            <span>Limpieza Facial</span><span class="sep">✦</span><span>Tratamiento de Acné</span><span class="sep">✦</span>
+            <span>Hiperpigmentación</span><span class="sep">✦</span><span>Rejuvenecimiento</span><span class="sep">✦</span>
+            <span>Depilación Láser</span><span class="sep">✦</span><span>Lifting de Pestañas</span><span class="sep">✦</span>
+            <span>Cejas 3D</span><span class="sep">✦</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- SOBRE MÍ -->
+    <section class="daya-section" id="sobre">
+        <div class="container">
+            <div class="row align-items-center g-5">
+                <div class="col-lg-6">
+                    <div class="about-img-stack reveal">
+                        <div class="main"><img src="{% static about_img %}" alt="Erika Dayana, esteticista"></div>
+                        <div class="sub"><img src="{% static about_img2 %}" alt="Ambiente del estudio"></div>
+                        <div class="badge-years"><strong>7+</strong><span>Años</span></div>
+                    </div>
+                </div>
+                <div class="col-lg-6 ps-lg-5">
+                    <span class="daya-kicker reveal">Sobre mí</span>
+                    <h2 class="reveal d1 mt-3">Hola, soy <span class="italic-accent">Erika Dayana</span></h2>
+                    <p class="reveal d2 mt-3" style="color:var(--muted)">
+                        Con más de 7 años dedicada al cuidado de la piel, mi misión es que cada clienta
+                        salga sintiéndose renovada y segura de sí misma. Cada tratamiento se diseña a tu medida,
+                        con productos eco-amigables y técnicas profesionales.
+                    </p>
+                    <ul class="about-list reveal d3">
+                        <li>Diagnóstico personalizado de tu piel</li>
+                        <li>Productos seguros y eco-amigables</li>
+                        <li>Ambiente cómodo, limpio y profesional</li>
+                        <li>Satisfacción garantizada en cada visita</li>
+                    </ul>
+                    {% if numero_wa %}
+                    <a class="btn-daya mt-4 reveal d4" href="{{ wa_link }}" target="_blank" rel="noopener">Conóceme por WhatsApp</a>
                     {% endif %}
-                    <a class="btn btn-glass btn-lg rounded-pill px-4" href="#planes">Ver planes</a>
-                </div>
-                <div class="hero-metrics">
-                    <div><strong>24/7</strong><span>Responde siempre</span></div>
-                    <div><strong>2h</strong><span>Recordatorio antes</span></div>
-                    <div><strong>$35</strong><span>Plan Pro sugerido</span></div>
                 </div>
             </div>
+        </div>
+    </section>
 
-            <div class="hero-product">
-                <div class="solution-console">
-                    <div class="console-topbar">
-                        <div><span class="console-dot"></span>HORUS Turnos</div>
-                        <strong>En vivo</strong>
+    <!-- TRATAMIENTOS -->
+    <section class="daya-section alt" id="tratamientos">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">Tratamientos</span>
+                <h2>Cuidados pensados para realzar tu belleza</h2>
+                <p>Cada servicio se adapta a tu tipo de piel y a tus objetivos. Escríbenos y te recomendamos el ideal para ti.</p>
+            </div>
+            <div class="row g-4">
+                {% for s in servicios %}
+                <div class="col-6 col-lg-3 reveal d{% cycle '1' '2' '3' '4' %}">
+                    <a class="service-card" href="{{ wa_link }}" target="_blank" rel="noopener">
+                        <img src="{% static s.imagen %}" alt="{{ s.obj.nombre }}" loading="lazy">
+                        <div class="overlay"></div>
+                        <div class="body">
+                            <span class="num">0{{ forloop.counter }}</span>
+                            <h3>{{ s.obj.nombre }}</h3>
+                            <p>{{ s.obj.descripcion }}</p>
+                            <div class="meta">{{ s.obj.duracion_minutos }} min{% if s.obj.precio %} · ${{ s.obj.precio }}{% endif %} · Agendar →</div>
+                        </div>
+                    </a>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted">Pronto publicaremos nuestros tratamientos.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- POR QUÉ (features) -->
+    <section class="daya-section dark">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">La experiencia Daya</span>
+                <h2>Más que un tratamiento, un momento para ti</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-6 col-lg-3 reveal d1"><div class="feature"><div class="ic">🌸</div><h3>Atención personalizada</h3><p>Escuchamos tu piel y diseñamos un plan a tu medida.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d2"><div class="feature"><div class="ic">🌿</div><h3>Productos eco-amigables</h3><p>Fórmulas seguras y de alta calidad para resultados reales.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d3"><div class="feature"><div class="ic">🕐</div><h3>Agenda flexible</h3><p>Reserva por WhatsApp en segundos, sin formularios complicados.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d4"><div class="feature"><div class="ic">✨</div><h3>Satisfacción garantizada</h3><p>Tu confianza y tu bienestar son nuestra prioridad.</p></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PRODUCTOS -->
+    <section class="daya-section" id="productos">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">Boutique</span>
+                <h2>Lleva el cuidado a casa</h2>
+                <p>Productos recomendados por Erika para mantener tu piel radiante entre cada visita.</p>
+            </div>
+            <div class="row g-4">
+                {% for p in productos %}
+                <div class="col-6 col-lg-2 reveal d{% cycle '1' '2' '3' %}">
+                    <div class="product-card">
+                        <div class="thumb"><img src="{% static p.imagen %}" alt="{{ p.obj.nombre }}" loading="lazy"></div>
+                        <div class="info">
+                            <h3>{{ p.obj.nombre }}</h3>
+                            <div class="price">${{ p.obj.precio }}</div>
+                            {% if numero_wa %}<a class="buy" href="{{ wa_link }}" target="_blank" rel="noopener">Pedir por WhatsApp →</a>{% endif %}
+                        </div>
                     </div>
-                    <div class="console-grid">
-                        <div class="console-panel calendar-panel">
-                            <span class="console-label">Agenda de hoy</span>
-                            <div class="calendar-row active"><b>09:00</b><span>Corte de cabello</span><em>Confirmado</em></div>
-                            <div class="calendar-row"><b>10:30</b><span>Barba</span><em>Nuevo</em></div>
-                            <div class="calendar-row"><b>12:00</b><span>Limpieza facial</span><em>Recordar</em></div>
-                        </div>
-                        <div class="console-panel whatsapp-panel">
-                            <span class="console-label">WhatsApp IA</span>
-                            <div class="wa-bubble client">Quiero corte mañana a las 10</div>
-                            <div class="wa-bubble bot">Disponible. ¿Confirmo tu turno?</div>
-                            <div class="wa-bubble client short">Sí</div>
-                        </div>
-                        <div class="console-panel stat-panel">
-                            <span class="console-label">Impacto</span>
-                            <strong>18</strong>
-                            <small>mensajes respondidos automáticamente hoy</small>
-                        </div>
-                        <div class="console-panel stat-panel electric-stat">
-                            <span class="console-label">Ventas</span>
-                            <strong>$42</strong>
-                            <small>cotizaciones levantadas por productos</small>
+                </div>
+                {% empty %}
+                <p class="text-center text-muted">Catálogo en preparación.</p>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- GALERÍA -->
+    <section class="daya-section alt" id="galeria">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">Galería</span>
+                <h2>Resultados que hablan por sí solos</h2>
+            </div>
+            <div class="gallery-grid reveal">
+                {% for img in galeria %}
+                <a href="{{ wa_link }}" target="_blank" rel="noopener"><img src="{% static img %}" alt="Daya Facial Care" loading="lazy"></a>
+                {% endfor %}
+            </div>
+        </div>
+    </section>
+
+    <!-- TESTIMONIOS -->
+    <section class="daya-section">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">Testimonios</span>
+                <h2>Lo que dicen nuestras clientas</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-md-4 reveal d1"><div class="testi"><div class="stars">★★★★★</div><p>“Mi piel cambió por completo. Erika es súper profesional y el lugar es hermoso y relajante.”</p><div class="who"><div class="av">M</div><div><strong>Mariana G.</strong><span>Limpieza facial</span></div></div></div></div>
+                <div class="col-md-4 reveal d2"><div class="testi"><div class="stars">★★★★★</div><p>“El tratamiento para el acné me devolvió la confianza. ¡Resultados desde la primera sesión!”</p><div class="who"><div class="av">C</div><div><strong>Carolina P.</strong><span>Tratamiento de acné</span></div></div></div></div>
+                <div class="col-md-4 reveal d3"><div class="testi"><div class="stars">★★★★★</div><p>“Mis cejas quedaron perfectas y naturales. Agendar por WhatsApp fue rapidísimo.”</p><div class="who"><div class="av">V</div><div><strong>Valeria R.</strong><span>Diseño de cejas 3D</span></div></div></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PROMO -->
+    <section class="daya-section alt">
+        <div class="container">
+            <div class="promo-band reveal">
+                <img src="{% static promo_img %}" alt="">
+                <div class="veil"></div>
+                <span class="badge-off">PROMO DE BIENVENIDA</span>
+                <h2 class="mt-3">10% de descuento en tu primer tratamiento</h2>
+                <p class="mb-4 mt-2" style="max-width:520px;margin-inline:auto">Escríbenos por WhatsApp, cuéntanos qué buscas y agenda tu cita con la promoción de bienvenida.</p>
+                {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener" style="background:#fff;color:var(--rose-ink)">✆ Agendar ahora</a>{% endif %}
+            </div>
+        </div>
+    </section>
+
+    <!-- CONTACTO -->
+    <section class="daya-section" id="contacto">
+        <div class="container">
+            <div class="section-head reveal">
+                <span class="daya-kicker justify-content-center" style="display:flex">Visítanos</span>
+                <h2>Te esperamos en Queens</h2>
+            </div>
+            <div class="row g-4">
+                <div class="col-lg-4 reveal d1">
+                    <div class="contact-card">
+                        <h3 class="h5 mb-3">Horarios</h3>
+                        {% for h in horarios %}
+                        <div class="hours-row"><span>{{ h.dia }}</span><strong>{{ h.inicio|time:'g:i A' }} – {{ h.fin|time:'g:i A' }}</strong></div>
+                        {% empty %}
+                        <p class="text-muted mb-0">Lun–Vie 10:00 AM–8:00 PM · Sáb y Dom 11:00 AM–6:00 PM</p>
+                        {% endfor %}
+                    </div>
+                </div>
+                <div class="col-lg-4 reveal d2">
+                    <div class="contact-card">
+                        <h3 class="h5 mb-3">Contacto</h3>
+                        <div class="contact-item"><div class="lbl">Dirección</div><div class="val">{{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div></div>
+                        <div class="contact-item"><div class="lbl">Teléfono / WhatsApp</div><div class="val">{{ negocio.telefono_principal|default:'+1 929-773-1659' }}</div></div>
+                        <div class="lbl mb-2">Síguenos</div>
+                        <div class="social-row">
+                            <a href="https://instagram.com/dayafacialcare" target="_blank" rel="noopener" title="Instagram">IG</a>
+                            <a href="https://www.tiktok.com/@erika_dayana1" target="_blank" rel="noopener" title="TikTok">TT</a>
+                            <a href="https://www.facebook.com/profile.php?id=61579714409219" target="_blank" rel="noopener" title="Facebook">FB</a>
                         </div>
                     </div>
-                    <div class="console-footer">
-                        <div><span>Recordatorio enviado</span><strong>2h antes del turno</strong></div>
-                        <div><span>Alerta dueño</span><strong>Nuevo pedido: Cera x2</strong></div>
+                </div>
+                <div class="col-lg-4 reveal d3">
+                    <div class="map-frame">
+                        <iframe src="https://www.google.com/maps?q=105-05%20Northern%20Blvd,%20Flushing,%20NY%2011368&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Daya Facial Care"></iframe>
                     </div>
                 </div>
-                <div class="floating-proof proof-one">
-                    <span>24/7</span>
-                    <strong>Sin perder chats</strong>
-                </div>
-                <div class="floating-proof proof-two">
-                    <span>WhatsApp</span>
-                    <strong>Sin links raros</strong>
-                </div>
             </div>
         </div>
-        <div class="trusted-line">
-            <span>Recepción automática para negocios que atienden por WhatsApp</span>
-            <div>
-                <strong>Agenda</strong>
-                <strong>Confirma</strong>
-                <strong>Recuerda</strong>
-                <strong>Cotiza</strong>
-                <strong>Avisa</strong>
-            </div>
-        </div>
-    </div>
-</section>
+    </section>
 
-<section class="problem-solution">
-    <div class="container">
-        <div class="problem-card">
-            <div>
-                <span class="section-kicker">El problema</span>
-                <h2>El dueño está atendiendo. El cliente está esperando respuesta.</h2>
-            </div>
-            <div class="pain-grid">
-                <div><strong>Chats perdidos</strong><span>“¿Tiene hora hoy?” queda sin respuesta.</span></div>
-                <div><strong>Ausencias</strong><span>El cliente olvida el turno si nadie recuerda.</span></div>
-                <div><strong>Ventas frías</strong><span>Preguntan productos o precios y no se registra nada.</span></div>
-            </div>
+    <!-- FOOTER -->
+    <footer class="daya-footer">
+        <div class="container">
+            <div class="brand">Daya Facial Care</div>
+            <p class="mt-2 mb-3">Belleza y cuidado de la piel · Queens, NY</p>
+            {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">Agenda tu cita</a>{% endif %}
+            <div class="fline">© Daya Facial Care · {{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div>
         </div>
-    </div>
-</section>
+    </footer>
 
-<section class="product-strip">
-    <div class="container">
-        <div class="strip-card">
-            <div>
-                <span class="section-kicker">El producto</span>
-                <h2>Una recepción completa dentro del chat.</h2>
-            </div>
-            <div class="strip-items">
-                <span>Agenda</span>
-                <span>FAQs</span>
-                <span>Productos</span>
-                <span>Promos</span>
-                <span>Pedidos</span>
-                <span>Recordatorios</span>
-            </div>
-        </div>
-    </div>
-</section>
+    {% if numero_wa %}<a class="wa-float" href="{{ wa_link }}" target="_blank" rel="noopener" title="Escríbenos por WhatsApp">✆</a>{% endif %}
+</div>
 
-<section class="landing-v2-section">
-    <div class="container">
-        <div class="section-title-row">
-            <div>
-                <span class="section-kicker">Qué vende HORUS</span>
-                <h2>No es un chatbot suelto. Es operación diaria automatizada.</h2>
-            </div>
-            <p>El dueño configura servicios, horarios, productos y respuestas. El cliente solo escribe por WhatsApp.</p>
-        </div>
-        <div class="capability-grid">
-            <article class="capability-card main-capability">
-                <div class="cap-icon">01</div>
-                <h3>Agenda inteligente</h3>
-                <p>Entiende frases naturales, valida horarios, evita solapes y confirma el turno.</p>
-                <div class="mini-terminal">
-                    <span>Cliente</span>
-                    <strong>“Quiero barba viernes en la tarde”</strong>
-                    <small>HORUS pide solo el dato faltante y agenda.</small>
-                </div>
-            </article>
-            <article class="capability-card">
-                <div class="cap-icon">02</div>
-                <h3>Ventas básicas</h3>
-                <p>Muestra productos, precios, stock y registra cotizaciones para cerrar después.</p>
-            </article>
-            <article class="capability-card">
-                <div class="cap-icon">03</div>
-                <h3>Promociones</h3>
-                <p>El cliente escribe “promos” y recibe ofertas activas con código o vigencia.</p>
-            </article>
-            <article class="capability-card">
-                <div class="cap-icon">04</div>
-                <h3>Autoservicio</h3>
-                <p>Consulta “mi turno”, confirma, cancela o reagenda sin esperar a una persona.</p>
-            </article>
-            <article class="capability-card">
-                <div class="cap-icon">05</div>
-                <h3>Dueño informado</h3>
-                <p>Alertas por WhatsApp, agenda del día, clientes nuevos y reporte diario.</p>
-            </article>
-        </div>
-    </div>
-</section>
+<script>
+(function () {
+    var nav = document.getElementById('dayaNav');
+    var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 40); };
+    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
 
-<section class="workflow-section">
-    <div class="container">
-        <div class="workflow-panel">
-            <div class="workflow-copy">
-                <span class="section-kicker light">Flujo real</span>
-                <h2>Del mensaje al ingreso, sin perseguir chats.</h2>
-                <p>HORUS reduce el ida y vuelta: pregunta lo necesario, registra todo y avisa al dueño cuando hay algo que cerrar.</p>
-            </div>
-            <div class="workflow-steps">
-                <div><span>1</span><strong>Cliente escribe</strong><small>Turno, precio, producto o duda.</small></div>
-                <div><span>2</span><strong>HORUS valida</strong><small>Reglas del negocio, agenda y catálogo.</small></div>
-                <div><span>3</span><strong>Registra</strong><small>Turno, pedido, cotización o conversación.</small></div>
-                <div><span>4</span><strong>Recuerda</strong><small>Confirma asistencia y reduce ausencias.</small></div>
-            </div>
-        </div>
-    </div>
-</section>
+    var burger = document.getElementById('burger'), links = document.getElementById('navLinks');
+    if (burger) burger.addEventListener('click', function () { links.classList.toggle('open'); });
+    links.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { links.classList.remove('open'); }); });
 
-<section class="landing-v2-section">
-    <div class="container">
-        <div class="section-title-row">
-            <div>
-                <span class="section-kicker">Para venderlo fácil</span>
-                <h2>Más barato que una recepcionista. Más directo que un link.</h2>
-            </div>
-        </div>
-        <div class="comparison-v2">
-            <div class="comparison-v2-head">
-                <span>Alternativa</span>
-                <span>Problema</span>
-                <span>HORUS</span>
-            </div>
-            <div>
-                <span>Recepcionista</span>
-                <span>Costo fijo alto y no siempre responde 24/7.</span>
-                <span>Automatiza lo repetitivo y avisa lo importante.</span>
-            </div>
-            <div>
-                <span>Link de reservas</span>
-                <span>Muchos clientes no quieren abrir formularios.</span>
-                <span>Agenda conversando dentro de WhatsApp.</span>
-            </div>
-            <div>
-                <span>WhatsApp Business normal</span>
-                <span>Ordena chats, pero no agenda ni recuerda solo.</span>
-                <span>Agenda, confirma, cotiza y registra.</span>
-            </div>
-        </div>
-    </div>
-</section>
-
-<section id="planes" class="pricing-v2-section">
-    <div class="container">
-        <div class="pricing-heading">
-            <span class="section-kicker">Planes</span>
-            <h2>Precios pensados para negocios que no pueden pagar software pesado.</h2>
-        </div>
-        <div class="pricing-v2-grid">
-            <article class="plan-v2">
-                <span>Básico</span>
-                <h3>$19<small>/mes</small></h3>
-                <p>Para empezar con agenda y respuestas simples.</p>
-                <ul>
-                    <li>Agenda por WhatsApp</li>
-                    <li>Servicios y horarios</li>
-                    <li>FAQs básicas</li>
-                    <li>Recordatorio 2h antes</li>
-                </ul>
-            </article>
-            <article class="plan-v2 featured-plan-v2">
-                <div class="plan-ribbon">Recomendado</div>
-                <span>Pro</span>
-                <h3>$35<small>/mes</small></h3>
-                <p>La recepción virtual completa para vender la demo.</p>
-                <ul>
-                    <li>IA para frases naturales</li>
-                    <li>Recordatorios 24h y 2h</li>
-                    <li>Productos, promociones y cotizaciones</li>
-                    <li>Alertas y reporte al dueño</li>
-                </ul>
-            </article>
-            <article class="plan-v2">
-                <span>Premium</span>
-                <h3>$59<small>/mes</small></h3>
-                <p>Para negocios con varias personas o sucursales.</p>
-                <ul>
-                    <li>Multi-profesional</li>
-                    <li>Multi-sucursal</li>
-                    <li>Reactivación de clientes</li>
-                    <li>Soporte prioritario</li>
-                </ul>
-            </article>
-        </div>
-    </div>
-</section>
-
-<section class="final-v2">
-    <div class="container">
-        <div class="final-v2-card">
-            <div>
-                <span class="section-kicker light">Prueba comercial</span>
-                <h2>Muéstralo con QR en un negocio real y mide turnos/pedidos.</h2>
-                <p>El argumento no es “tenemos IA”. El argumento es: respondes más rápido, pierdes menos citas y capturas más ventas.</p>
-            </div>
-            {% if numero_demo %}
-                <a class="btn btn-electric btn-lg rounded-pill px-4" href="https://wa.me/{{ numero_demo }}?text=Hola" target="_blank" rel="noopener">Abrir WhatsApp</a>
-            {% endif %}
-        </div>
-    </div>
-</section>
+    var io = new IntersectionObserver(function (entries) {
+        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
+})();
+</script>
+{% endwith %}
 {% endblock %}

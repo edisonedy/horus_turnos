@@ -45,6 +45,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'apps.core.context_processors.branding',
             ],
         },
     },
@@ -94,9 +95,58 @@ WHATSAPP_PHONE_NUMBER_ID = config('WHATSAPP_PHONE_NUMBER_ID', default='')
 WHATSAPP_BUSINESS_ACCOUNT_ID = config('WHATSAPP_BUSINESS_ACCOUNT_ID', default='')
 WHATSAPP_TEST_PHONE_NUMBER = config('WHATSAPP_TEST_PHONE_NUMBER', default='')
 WHATSAPP_VERIFY_TOKEN = config('WHATSAPP_VERIFY_TOKEN', default='horus_turnos_verify_123')
+WHATSAPP_APP_SECRET = config('WHATSAPP_APP_SECRET', default='')
 WHATSAPP_GRAPH_API_VERSION = config('WHATSAPP_GRAPH_API_VERSION', default='v20.0')
 WHATSAPP_REQUEST_TIMEOUT = config('WHATSAPP_REQUEST_TIMEOUT', default=15, cast=int)
 
-OPENAI_API_KEY = config('OPENAI_API_KEY', default='')
-OPENAI_MODEL = config('OPENAI_MODEL', default='gpt-5.2')
-BOT_USA_OPENAI = config('BOT_USA_OPENAI', default=False, cast=bool)
+# Nombres propios (BOT_AI_*) para no colisionar con un OPENAI_API_KEY global del
+# sistema. Vacío en BASE_URL = OpenAI; para DeepSeek usar https://api.deepseek.com.
+OPENAI_API_KEY = config('BOT_AI_API_KEY', default='')
+OPENAI_BASE_URL = config('BOT_AI_BASE_URL', default='')
+OPENAI_MODEL = config('BOT_AI_MODEL', default='deepseek-chat')
+BOT_USA_OPENAI = config('BOT_USA_IA', default=False, cast=bool)
+
+LOG_DIR = BASE_DIR / 'logs'
+LOG_DIR.mkdir(exist_ok=True)
+LOG_LEVEL = config('LOG_LEVEL', default='INFO')
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{asctime} {levelname} {name} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'archivo': {
+            'class': 'logging.handlers.RotatingFileHandler',
+            'filename': LOG_DIR / 'horus.log',
+            'maxBytes': 5 * 1024 * 1024,
+            'backupCount': 5,
+            'encoding': 'utf-8',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'archivo'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'horus': {
+            'handlers': ['console', 'archivo'],
+            'level': LOG_LEVEL,
+            'propagate': False,
+        },
+        'django.request': {
+            'handlers': ['console', 'archivo'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+    },
+}

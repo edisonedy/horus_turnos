@@ -1,6 +1,6 @@
 from datetime import datetime, timedelta
 
-from django.db import transaction
+from django.db import connection, transaction
 from django.db.models import Q
 from django.utils import timezone
 
@@ -25,6 +25,22 @@ def obtener_o_crear_cliente(negocio, telefono, nombre=''):
 
 def calcular_fecha_fin(fecha_hora_inicio, servicio):
     return fecha_hora_inicio + timedelta(minutes=servicio.duracion_minutos)
+
+
+def _bloquear_slot(negocio_id, fecha_hora_inicio):
+    """Serializa los intentos de reserva concurrentes para un mismo negocio y
+    horario usando un advisory lock transaccional de Postgres.
+
+    Sin esto, dos webhooks simultáneos pueden pasar ambos la verificación de
+    disponibilidad y crear turnos solapados (doble reserva). El lock se libera
+    automáticamente al cerrar la transacción. En motores que no sean Postgres
+    (p. ej. SQLite en tests) simplemente no aplica.
+    """
+    if connection.vendor != 'postgresql':
+        return
+    slot_key = fecha_hora_inicio.replace(second=0, microsecond=0).isoformat()
+    with connection.cursor() as cursor:
+        cursor.execute('SELECT pg_advisory_xact_lock(%s, hashtext(%s))', [int(negocio_id), slot_key])
 
 
 def _profesional_disponible(negocio, inicio, fin, sucursal=None, excluir_turno=None):
@@ -99,6 +115,7 @@ def obtener_horarios_disponibles(negocio, servicio, fecha, sucursal=None, exclui
 
 @transaction.atomic
 def crear_turno_desde_whatsapp(negocio, cliente, servicio, fecha_hora_inicio, sucursal=None, estado=None, observacion=''):
+    _bloquear_slot(negocio.id, fecha_hora_inicio)
     fecha_hora_fin = calcular_fecha_fin(fecha_hora_inicio, servicio)
     profesional = _profesional_disponible(negocio, fecha_hora_inicio, fecha_hora_fin, sucursal=sucursal)
     if profesional is None and profesionales_activos(negocio, sucursal=sucursal).exists():
@@ -124,6 +141,7 @@ def crear_turno_desde_whatsapp(negocio, cliente, servicio, fecha_hora_inicio, su
 
 @transaction.atomic
 def reagendar_turno(turno, nueva_fecha_hora_inicio, observacion_extra=''):
+    _bloquear_slot(turno.negocio_id, nueva_fecha_hora_inicio)
     fecha_anterior = timezone.localtime(turno.fecha_hora_inicio).strftime('%d/%m/%Y %H:%M')
     fecha_hora_fin = calcular_fecha_fin(nueva_fecha_hora_inicio, turno.servicio)
     profesional = _profesional_disponible(

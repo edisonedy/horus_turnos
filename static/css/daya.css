@@ -1,0 +1,250 @@
+/* ===== Daya Facial Care — experiencia premium ===== */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Jost:wght@300;400;500;600&display=swap');
+
+:root {
+    --rose: #d49aa0;
+    --rose-deep: #b56b72;
+    --rose-ink: #8a4a50;
+    --nude: #ecd7cd;
+    --sand: #f5e7df;
+    --cream: #fdf8f5;
+    --ink: #2c2320;
+    --muted: #8b7a74;
+    --gold: #c2a36b;
+    --wa: #25d366;
+    --shadow: 0 30px 60px -30px rgba(140, 80, 85, .5);
+    --ease: cubic-bezier(.22, 1, .36, 1);
+}
+
+/* Ocultar navbar/oscuro global solo en la landing pública */
+body:has(.daya-landing) .horus-navbar { display: none !important; }
+body:has(.daya-landing) { background: var(--cream); }
+html { scroll-behavior: smooth; }
+
+.daya-landing {
+    font-family: 'Jost', system-ui, sans-serif;
+    color: var(--ink);
+    background: var(--cream);
+    overflow-x: hidden;
+    line-height: 1.6;
+}
+.daya-landing h1, .daya-landing h2, .daya-landing h3, .daya-landing .serif {
+    font-family: 'Playfair Display', Georgia, serif;
+    font-weight: 600;
+    line-height: 1.12;
+    letter-spacing: -.01em;
+}
+.daya-landing .container { max-width: 1160px; }
+.daya-kicker {
+    font-family: 'Jost', sans-serif;
+    text-transform: uppercase;
+    letter-spacing: .34em;
+    font-size: .72rem;
+    font-weight: 600;
+    color: var(--rose-deep);
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+}
+.daya-kicker::before { content: ''; width: 28px; height: 1px; background: var(--gold); display: inline-block; }
+.text-gold { color: var(--gold); }
+.italic-accent { font-style: italic; font-weight: 400; color: var(--rose-deep); }
+
+/* ---- Reveal animations ---- */
+.reveal { opacity: 0; transform: translateY(34px); transition: opacity .9s var(--ease), transform .9s var(--ease); }
+.reveal.in { opacity: 1; transform: none; }
+.reveal.d1 { transition-delay: .1s; } .reveal.d2 { transition-delay: .2s; }
+.reveal.d3 { transition-delay: .3s; } .reveal.d4 { transition-delay: .4s; }
+
+/* ---- Buttons ---- */
+.btn-daya, .btn-daya-ghost {
+    font-family: 'Jost', sans-serif; font-weight: 500; letter-spacing: .02em;
+    border-radius: 999px; padding: 14px 32px; display: inline-flex; align-items: center;
+    gap: 9px; text-decoration: none; transition: all .35s var(--ease); border: 1.5px solid transparent;
+}
+.btn-daya { background: var(--rose-deep); color: #fff; box-shadow: 0 14px 30px -12px rgba(181,107,114,.7); }
+.btn-daya:hover { background: var(--ink); color: #fff; transform: translateY(-3px); }
+.btn-daya-ghost { background: transparent; color: var(--ink); border-color: var(--nude); }
+.btn-daya-ghost:hover { border-color: var(--rose-deep); color: var(--rose-deep); transform: translateY(-3px); }
+
+/* ===== NAV ===== */
+.daya-nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 1000;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 22px clamp(18px, 5vw, 64px);
+    transition: all .4s var(--ease);
+}
+.daya-nav.scrolled {
+    background: rgba(253, 248, 245, .92); backdrop-filter: blur(12px);
+    padding-top: 14px; padding-bottom: 14px; box-shadow: 0 10px 30px -22px rgba(140,80,85,.6);
+}
+.daya-nav .brand { font-family: 'Playfair Display', serif; font-size: 1.35rem; font-weight: 600; color: var(--ink); text-decoration: none; }
+.daya-nav .brand-logo { display: flex; align-items: center; gap: 12px; }
+.daya-nav .nav-logo { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; box-shadow: 0 6px 16px -8px rgba(140,80,85,.6); }
+.daya-nav .brand small { display: block; font-family: 'Jost'; font-size: .6rem; letter-spacing: .35em; text-transform: uppercase; color: var(--rose-deep); margin-top: -2px; }
+.daya-nav .links { display: flex; align-items: center; gap: 30px; }
+.daya-nav .links a { color: var(--ink); text-decoration: none; font-size: .92rem; font-weight: 400; position: relative; }
+.daya-nav .links a:not(.btn-daya)::after { content: ''; position: absolute; left: 0; bottom: -5px; width: 0; height: 1.5px; background: var(--rose-deep); transition: width .3s var(--ease); }
+.daya-nav .links a:not(.btn-daya):hover::after { width: 100%; }
+.daya-nav .burger { display: none; background: none; border: none; font-size: 1.5rem; color: var(--ink); }
+@media (max-width: 860px) {
+    .daya-nav .links { position: fixed; inset: 0 0 0 30%; flex-direction: column; justify-content: center; gap: 26px;
+        background: rgba(253,248,245,.98); backdrop-filter: blur(14px); transform: translateX(100%); transition: transform .4s var(--ease); }
+    .daya-nav .links.open { transform: none; }
+    .daya-nav .burger { display: block; z-index: 1001; }
+}
+
+/* ===== HERO ===== */
+.daya-hero { position: relative; min-height: 100vh; display: flex; align-items: center;
+    padding: 130px 0 80px; background: radial-gradient(110% 90% at 90% 10%, var(--sand) 0%, var(--cream) 60%); }
+.daya-hero .blob { position: absolute; border-radius: 50%; filter: blur(70px); opacity: .5; z-index: 0; }
+.daya-hero .blob.b1 { width: 420px; height: 420px; background: var(--nude); top: -80px; left: -120px; }
+.daya-hero .blob.b2 { width: 360px; height: 360px; background: #f3dfe0; bottom: -100px; right: 20%; opacity: .45; }
+.daya-hero .container { position: relative; z-index: 2; }
+.daya-hero h1 { font-size: clamp(2.6rem, 6vw, 4.8rem); margin: 22px 0 20px; }
+.daya-hero .lead { color: var(--muted); font-size: 1.15rem; max-width: 480px; font-weight: 300; }
+.daya-hero-actions { display: flex; gap: 16px; flex-wrap: wrap; margin-top: 34px; }
+.hero-trust { display: flex; gap: 34px; margin-top: 44px; flex-wrap: wrap; }
+.hero-trust div strong { font-family: 'Playfair Display', serif; font-size: 1.9rem; color: var(--rose-deep); display: block; }
+.hero-trust div span { font-size: .82rem; color: var(--muted); letter-spacing: .04em; }
+
+.hero-visual { position: relative; }
+.hero-visual .frame {
+    border-radius: 260px 260px 28px 28px; overflow: hidden; aspect-ratio: 3/4;
+    box-shadow: var(--shadow); position: relative; z-index: 2;
+    animation: floatY 7s ease-in-out infinite;
+}
+.hero-visual .frame img { width: 100%; height: 100%; object-fit: cover; }
+.hero-visual .ring { position: absolute; inset: -18px; border: 1.5px solid var(--nude); border-radius: 260px 260px 40px 40px; z-index: 1; }
+.hero-float-card {
+    position: absolute; z-index: 3; background: rgba(255,255,255,.85); backdrop-filter: blur(10px);
+    border-radius: 18px; padding: 14px 18px; box-shadow: 0 18px 40px -20px rgba(140,80,85,.55);
+    display: flex; align-items: center; gap: 12px; animation: floatY 5.5s ease-in-out infinite;
+}
+.hero-float-card .dot { width: 38px; height: 38px; border-radius: 12px; background: var(--sand); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+.hero-float-card strong { font-size: .9rem; } .hero-float-card span { font-size: .74rem; color: var(--muted); display: block; }
+.hero-float-card.c1 { top: 24%; left: -38px; } .hero-float-card.c2 { bottom: 12%; right: -30px; animation-delay: 1.2s; }
+@keyframes floatY { 0%,100% { transform: translateY(0); } 50% { transform: translateY(-14px); } }
+
+/* ===== Marquee ===== */
+.daya-marquee { background: var(--ink); color: var(--sand); padding: 18px 0; overflow: hidden; white-space: nowrap; }
+.daya-marquee .track { display: inline-flex; gap: 48px; animation: scrollX 26s linear infinite; font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.3rem; }
+.daya-marquee .track span { opacity: .85; } .daya-marquee .track .sep { color: var(--gold); font-style: normal; }
+@keyframes scrollX { to { transform: translateX(-50%); } }
+
+/* ===== Sections ===== */
+.daya-section { padding: clamp(64px, 9vw, 120px) 0; }
+.daya-section.alt { background: linear-gradient(180deg, #fff, var(--sand)); }
+.daya-section.dark { background: var(--ink); color: var(--sand); }
+.daya-section.dark h2, .daya-section.dark h3 { color: #fff; }
+.section-head { text-align: center; max-width: 660px; margin: 0 auto 56px; }
+.section-head h2 { font-size: clamp(2rem, 4vw, 3rem); margin-top: 14px; }
+.section-head p { color: var(--muted); font-weight: 300; margin-top: 12px; }
+
+/* ===== About ===== */
+.about-img-stack { position: relative; }
+.about-img-stack .main { border-radius: 30px; overflow: hidden; box-shadow: var(--shadow); aspect-ratio: 4/5; }
+.about-img-stack .main img { width: 100%; height: 100%; object-fit: cover; }
+.about-img-stack .sub { position: absolute; bottom: -34px; right: -24px; width: 46%; border-radius: 22px; overflow: hidden; border: 6px solid var(--cream); box-shadow: var(--shadow); aspect-ratio: 1; }
+.about-img-stack .sub img { width: 100%; height: 100%; object-fit: cover; }
+.about-img-stack .badge-years { position: absolute; top: -22px; left: -22px; width: 110px; height: 110px; border-radius: 50%;
+    background: var(--rose-deep); color: #fff; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: var(--shadow); }
+.about-img-stack .badge-years strong { font-family: 'Playfair Display', serif; font-size: 2rem; line-height: 1; }
+.about-img-stack .badge-years span { font-size: .64rem; letter-spacing: .14em; text-transform: uppercase; }
+.about-list { list-style: none; padding: 0; margin: 26px 0 0; }
+.about-list li { display: flex; gap: 12px; align-items: flex-start; margin-bottom: 14px; color: var(--ink); }
+.about-list li::before { content: '✦'; color: var(--gold); }
+
+/* ===== Services ===== */
+.service-card { position: relative; border-radius: 22px; overflow: hidden; box-shadow: 0 22px 44px -30px rgba(140,80,85,.5);
+    aspect-ratio: 3/4; display: block; }
+.service-card img { width: 100%; height: 100%; object-fit: cover; transition: transform 1s var(--ease); }
+.service-card:hover img { transform: scale(1.08); }
+.service-card .overlay { position: absolute; inset: 0; background: linear-gradient(to top, rgba(44,35,32,.88) 0%, rgba(44,35,32,.15) 55%, transparent 100%); }
+.service-card .body { position: absolute; left: 0; right: 0; bottom: 0; padding: 24px; color: #fff; }
+.service-card .num { font-family: 'Playfair Display', serif; font-style: italic; color: var(--nude); font-size: .9rem; }
+.service-card h3 { color: #fff; font-size: 1.28rem; margin: 4px 0 6px; }
+.service-card p { font-size: .86rem; color: rgba(255,255,255,.78); margin: 0; max-height: 0; opacity: 0; overflow: hidden; transition: all .5s var(--ease); }
+.service-card:hover p { max-height: 100px; opacity: 1; margin-top: 8px; }
+.service-card .meta { margin-top: 12px; font-size: .8rem; letter-spacing: .06em; color: var(--gold); font-weight: 500; }
+
+/* ===== Features ===== */
+.feature { text-align: center; padding: 26px; }
+.feature .ic { width: 62px; height: 62px; margin: 0 auto 16px; border-radius: 18px; background: rgba(212,154,160,.16);
+    display: flex; align-items: center; justify-content: center; font-size: 1.6rem; color: var(--rose-deep); }
+.daya-section.dark .feature .ic { background: rgba(255,255,255,.08); color: var(--nude); }
+.feature h3 { font-size: 1.12rem; margin-bottom: 8px; }
+.feature p { color: var(--muted); font-size: .9rem; font-weight: 300; }
+.daya-section.dark .feature p { color: rgba(245,231,223,.7); }
+
+/* ===== Products ===== */
+.product-card { background: #fff; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 40px -32px rgba(140,80,85,.55);
+    transition: transform .4s var(--ease); }
+.product-card:hover { transform: translateY(-8px); }
+.product-card .thumb { aspect-ratio: 1; overflow: hidden; }
+.product-card .thumb img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s var(--ease); }
+.product-card:hover .thumb img { transform: scale(1.07); }
+.product-card .info { padding: 18px 18px 22px; text-align: center; }
+.product-card h3 { font-size: 1.02rem; margin-bottom: 6px; }
+.product-card .price { color: var(--rose-deep); font-family: 'Playfair Display', serif; font-size: 1.4rem; }
+.product-card .buy { margin-top: 10px; font-size: .78rem; color: var(--muted); }
+
+/* ===== Gallery ===== */
+.gallery-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+.gallery-grid a { border-radius: 16px; overflow: hidden; display: block; aspect-ratio: 1; }
+.gallery-grid a:nth-child(1) { grid-row: span 2; aspect-ratio: auto; }
+.gallery-grid img { width: 100%; height: 100%; object-fit: cover; transition: transform .9s var(--ease); }
+.gallery-grid a:hover img { transform: scale(1.09); }
+@media (max-width: 700px) { .gallery-grid { grid-template-columns: repeat(2, 1fr); } .gallery-grid a:nth-child(1) { grid-row: span 1; } }
+
+/* ===== Testimonials ===== */
+.testi { background: #fff; border-radius: 22px; padding: 30px; box-shadow: 0 22px 44px -34px rgba(140,80,85,.5); height: 100%; }
+.testi .stars { color: var(--gold); letter-spacing: 3px; margin-bottom: 12px; }
+.testi p { font-family: 'Playfair Display', serif; font-style: italic; font-size: 1.05rem; color: var(--ink); }
+.testi .who { display: flex; align-items: center; gap: 12px; margin-top: 16px; }
+.testi .who .av { width: 44px; height: 44px; border-radius: 50%; background: var(--rose-deep); color: #fff;
+    display: flex; align-items: center; justify-content: center; font-weight: 600; }
+.testi .who strong { display: block; font-size: .92rem; } .testi .who span { font-size: .78rem; color: var(--muted); }
+
+/* ===== Promo / CTA band ===== */
+.promo-band { position: relative; border-radius: 32px; overflow: hidden; padding: clamp(48px, 7vw, 90px) clamp(24px, 5vw, 70px);
+    color: #fff; text-align: center; }
+.promo-band img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.promo-band .veil { position: absolute; inset: 0; background: linear-gradient(120deg, rgba(138,74,80,.92), rgba(44,35,32,.7)); }
+.promo-band > * { position: relative; z-index: 2; }
+.promo-band h2 { color: #fff; font-size: clamp(2rem, 4vw, 3.2rem); }
+.promo-band .badge-off { display: inline-block; background: var(--gold); color: var(--ink); font-weight: 600; padding: 6px 16px; border-radius: 999px; letter-spacing: .1em; font-size: .8rem; }
+
+/* ===== Contact ===== */
+.contact-card { background: #fff; border-radius: 24px; padding: 34px; box-shadow: var(--shadow); height: 100%; }
+.hours-row { display: flex; justify-content: space-between; padding: 11px 0; border-bottom: 1px dashed var(--nude); }
+.hours-row:last-child { border-bottom: none; }
+.hours-row.today { color: var(--rose-deep); font-weight: 600; }
+.contact-item { margin-bottom: 18px; }
+.contact-item .lbl { font-size: .72rem; letter-spacing: .16em; text-transform: uppercase; color: var(--muted); }
+.contact-item .val { font-size: 1.05rem; font-weight: 500; }
+.social-row a { width: 46px; height: 46px; border-radius: 14px; background: var(--sand); color: var(--rose-deep);
+    display: inline-flex; align-items: center; justify-content: center; margin-right: 10px; text-decoration: none; font-weight: 600; transition: all .3s var(--ease); }
+.social-row a:hover { background: var(--rose-deep); color: #fff; transform: translateY(-3px); }
+.map-frame { border-radius: 24px; overflow: hidden; box-shadow: var(--shadow); height: 100%; min-height: 320px; }
+.map-frame iframe { width: 100%; height: 100%; border: 0; display: block; }
+
+/* ===== Footer ===== */
+.daya-footer { background: var(--ink); color: rgba(245,231,223,.7); padding: 60px 0 28px; text-align: center; }
+.daya-footer .brand { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: #fff; }
+.daya-footer a { color: var(--nude); text-decoration: none; }
+.daya-footer .fline { border-top: 1px solid rgba(255,255,255,.1); margin-top: 28px; padding-top: 20px; font-size: .82rem; }
+
+/* ===== Floating WhatsApp ===== */
+.wa-float { position: fixed; right: 22px; bottom: 22px; z-index: 1200; width: 60px; height: 60px; border-radius: 50%;
+    background: var(--wa); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 1.7rem;
+    text-decoration: none; box-shadow: 0 14px 30px -8px rgba(37,211,102,.7); }
+.wa-float::before { content: ''; position: absolute; inset: 0; border-radius: 50%; background: var(--wa); z-index: -1; animation: pulse 2.2s ease-out infinite; }
+.wa-float:hover { color: #fff; transform: scale(1.08); transition: transform .2s var(--ease); }
+@keyframes pulse { 0% { transform: scale(1); opacity: .7; } 100% { transform: scale(2.1); opacity: 0; } }
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal { opacity: 1; transform: none; }
+    .hero-visual .frame, .hero-float-card { animation: none; }
+    .daya-marquee .track { animation: none; }
+}

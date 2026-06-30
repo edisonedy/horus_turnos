@@ -10,6 +10,7 @@ urlpatterns = [
     path('', include('apps.negocios.urls')),
     path('', include('apps.agenda.urls')),
     path('', include('apps.whatsapp_api.panel_urls')),
+    path('', include('apps.bot_turnos.urls')),
     path('whatsapp/', include('apps.whatsapp_api.urls')),
 ]
 

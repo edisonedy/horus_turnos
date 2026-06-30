@@ -12,8 +12,7 @@ Promesa principal:
 
 Priorizar negocios con citas frecuentes, baja capacidad administrativa y alta dependencia de WhatsApp:
 
-- Barberias
-- Peluquerias
+- Centros de estetica facial
 - Unas, cejas y pestanas
 - Spa y masajes
 - Consultorios pequenos
@@ -100,7 +99,7 @@ Argumento comercial:
 
 ## Flujo de venta
 
-1. Elegir nicho: barberias y peluquerias.
+1. Elegir nicho: centros de estetica y belleza.
 2. Ofrecer demo de 7 dias.
 3. Configurar servicios y horarios en 30 minutos.
 4. Poner QR en mostrador e Instagram.

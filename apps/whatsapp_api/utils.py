@@ -1,4 +1,27 @@
+import hashlib
+import hmac
+
 from apps.core.utils import normalizar_telefono
+
+
+def firma_webhook_valida(cuerpo_bytes, cabecera_firma, app_secret):
+    """Valida la firma X-Hub-Signature-256 que envía Meta en el webhook.
+
+    Meta firma el cuerpo crudo del request con HMAC-SHA256 usando el App Secret.
+    Devuelve True si la firma coincide. Si no hay app_secret configurado se
+    considera que la validación no aplica (lo decide el llamador).
+    """
+    if not app_secret:
+        return False
+    if not cabecera_firma or not cabecera_firma.startswith('sha256='):
+        return False
+    firma_recibida = cabecera_firma.split('sha256=', 1)[1].strip()
+    firma_esperada = hmac.new(
+        app_secret.encode('utf-8'),
+        msg=cuerpo_bytes,
+        digestmod=hashlib.sha256,
+    ).hexdigest()
+    return hmac.compare_digest(firma_recibida, firma_esperada)
 
 
 def extraer_phone_number_id(payload):

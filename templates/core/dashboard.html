@@ -1,59 +1,37 @@
 {% extends 'base.html' %}
-{% block title %}Dashboard - HORUS TURNOS{% endblock %}
+{% block title %}Panel · {{ negocio.nombre|default:'Daya Facial Care' }}{% endblock %}
 {% block content %}
 <div class="d-flex justify-content-between align-items-start mb-4">
     <div>
-        <h1 class="h3 mb-1">Dashboard</h1>
-        <p class="text-muted mb-0">Administración mínima. La operación principal ocurre por WhatsApp.</p>
+        <h1 class="h3 mb-1">Panel de {{ negocio.nombre|default:'Daya Facial Care' }}</h1>
+        <p class="text-muted mb-0">Resumen del día. La atención al cliente ocurre por WhatsApp.</p>
     </div>
     {% if negocio %}<span class="badge badge-soft rounded-pill px-3 py-2">{{ negocio.nombre }}</span>{% endif %}
 </div>
 
 {% if not negocio %}
-<div class="alert alert-warning">Primero configura tu negocio para activar agenda y WhatsApp.</div>
+<div class="alert alert-warning">Primero configura el negocio para activar agenda y WhatsApp.</div>
 <a href="{% url 'configuracion_negocio' %}" class="btn btn-horus">Configurar negocio</a>
 {% else %}
-<div class="card table-card mb-4">
-    <div class="card-body">
-        <div class="d-flex flex-wrap justify-content-between align-items-center gap-3 mb-3">
-            <div>
-                <h2 class="h5 mb-1">Puesta en marcha</h2>
-                <p class="text-muted mb-0">Checklist mínimo para que HORUS funcione como recepcionista virtual.</p>
-            </div>
-            <div class="onboarding-score">{{ onboarding_porcentaje }}%</div>
-        </div>
-        <div class="progress onboarding-progress mb-3" role="progressbar" aria-label="Progreso de configuración" aria-valuenow="{{ onboarding_porcentaje }}" aria-valuemin="0" aria-valuemax="100">
-            <div class="progress-bar" style="width: {{ onboarding_porcentaje }}%"></div>
-        </div>
-        <div class="row g-3">
-            {% for paso in onboarding %}
-                <div class="col-md-6 col-xl-4">
-                    <a class="onboarding-step {% if paso.completo %}is-complete{% endif %}" href="{% url paso.url_name %}">
-                        <span>{% if paso.completo %}OK{% else %}Falta{% endif %}</span>
-                        <strong>{{ paso.titulo }}</strong>
-                        <small>{{ paso.descripcion }}</small>
-                    </a>
-                </div>
-            {% endfor %}
-        </div>
-        <div class="d-flex flex-wrap gap-2 mt-3">
-            <a class="btn btn-sm btn-horus rounded-pill" href="{% url 'demo' %}" target="_blank">Abrir demo pública</a>
-            <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'conversaciones' %}">Ver conversaciones</a>
-        </div>
-    </div>
+
+<div class="d-flex flex-wrap gap-2 mb-4">
+    <a class="btn btn-sm btn-horus rounded-pill" href="{% url 'turnos' %}">Ver turnos</a>
+    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'reportes' %}">Reportes</a>
+    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'conversaciones' %}">Conversaciones</a>
+    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'configuracion_negocio' %}">Configuración</a>
 </div>
 
 <div class="row g-3 mb-4">
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card metric-card"><div class="card-body"><div class="text-muted small">Turnos hoy</div><div class="display-6 fw-bold">{{ turnos_hoy|length }}</div></div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card metric-card"><div class="card-body"><div class="text-muted small">Clientes</div><div class="display-6 fw-bold">{{ clientes_total }}</div></div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card metric-card"><div class="card-body"><div class="text-muted small">Recordatorios pendientes</div><div class="display-6 fw-bold">{{ recordatorios_pendientes|length }}</div></div></div>
     </div>
-    <div class="col-md-3">
+    <div class="col-6 col-md-3">
         <div class="card metric-card"><div class="card-body"><div class="text-muted small">Errores WhatsApp</div><div class="display-6 fw-bold">{{ errores_whatsapp|length }}</div></div></div>
     </div>
 </div>

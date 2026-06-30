@@ -27,7 +27,7 @@ from apps.negocios.models import Sucursal
 from apps.whatsapp_api.models import ConversacionWhatsApp
 from apps.whatsapp_api.selectors import obtener_o_crear_conversacion
 from apps.whatsapp_api.services import WhatsAppService
-from .ai import interpretar_mensaje
+from .ai import interpretar_mensaje, respuesta_humana
 from .owner_bot import procesar_mensaje_dueno
 
 MENU_OPCIONES = [
@@ -52,12 +52,31 @@ INTENCIONES_REAGENDAR = {
     'quiero cambiar la fecha', 'cambiar', '2'
 }
 INTENCIONES_CANCELAR = {'cancelar', 'ya no voy', 'quiero cancelar', 'anular cita', 'anular', '3'}
+
+# Palabras comunes que NO deben usarse para "adivinar" un servicio por coincidencia
+# (evita que "cita PARA mañana" matchee "Tratamiento PARA Acné").
+PALABRAS_IGNORADAS = {
+    'para', 'cita', 'citas', 'turno', 'turnos', 'hora', 'horas', 'dia', 'dias',
+    'quiero', 'necesito', 'quisiera', 'gustaria', 'puedo', 'puede', 'tengo',
+    'manana', 'hoy', 'tarde', 'noche', 'una', 'uno', 'este', 'esta', 'esto',
+    'agendar', 'reservar', 'reserva', 'favor', 'porfa', 'porfavor', 'como', 'que',
+    'algun', 'alguna', 'disponible', 'disponibles', 'espacio', 'cuando', 'sobre',
+    'tratamiento', 'tratamientos', 'servicio', 'servicios',
+}
 INTENCIONES_SERVICIOS = {'servicios', 'precios de servicios', 'que servicios', 'qué servicios', '4'}
 INTENCIONES_PRODUCTOS = {'productos', 'producto', 'catalogo', 'catálogo', 'comprar', 'venta', 'venden', '5'}
 INTENCIONES_FAQ = {'preguntas', 'preguntas frecuentes', 'faq', 'dudas', 'formas de pago', 'metodos de pago', 'métodos de pago', 'garantia', 'garantía', 'domicilio', 'envio', 'envío', '6'}
-INTENCIONES_UBICACION = {'ubicacion', 'ubicación', 'direccion', 'dirección', 'donde estan', 'dónde están', 'como llego', 'cómo llego', 'horario', 'horarios', '7'}
+INTENCIONES_UBICACION = {'ubicacion', 'ubicación', 'direccion', 'dirección', 'donde estan', 'dónde están',
+                         'donde queda', 'como llego', 'cómo llego', 'horario', 'horarios', 'que hora abren',
+                         'a que hora', 'abren', 'cierran', 'atienden', 'que dias', 'mapa', '7'}
+# Frases para abandonar/salir del flujo actual (no es cancelar una cita existente).
+INTENCIONES_SALIR = {'mejor no', 'olvidalo', 'olvídalo', 'olvida', 'deja asi', 'dejalo asi',
+                     'dejalo', 'nada gracias', 'no gracias', 'mejor luego', 'mejor despues', 'mejor después',
+                     'asi no', 'salir', 'olvidemos', 'nada por ahora', 'mejor otro dia', 'no por ahora'}
 INTENCIONES_PROMOCIONES = {'promociones', 'promos', 'promo', 'ofertas', 'oferta', 'descuento', 'descuentos', '8'}
-INTENCIONES_MI_TURNO = {'mi turno', 'mis turnos', 'mi cita', 'mi reserva', 'proximo turno', 'próximo turno', '9'}
+INTENCIONES_MI_TURNO = {'mi turno', 'mis turnos', 'mi cita', 'mis citas', 'mi reserva', 'mis reservas',
+                        'ver mis citas', 'ver mi cita', 'ver mis turnos', 'consultar mi turno',
+                        'cuando es mi', 'cuando tengo mi', 'proximo turno', 'próximo turno', '9'}
 INTENCIONES_HUMANO = {'asesor', 'persona', 'humano', 'hablar con alguien', 'hablar con una persona', 'recepcionista humana', '10'}
 INTENCIONES_AYUDA = {
     'ayuda', 'que puedes hacer', 'qué puedes hacer', 'como funciona', 'cómo funciona',
@@ -66,7 +85,8 @@ INTENCIONES_AYUDA = {
 INTENCIONES_PRECIO = {'precio', 'precios', 'cuanto cuesta', 'cuánto cuesta', 'costo', 'valor', 'vale'}
 INTENCIONES_CONSULTA_PRODUCTO = {'tienen', 'tiene', 'hay', 'venden', 'vende', 'disponible', 'stock'}
 INTENCIONES_PEDIDO_PRODUCTO = {'comprar', 'cotizar', 'pedido', 'pedir', 'apartar'}
-INTENCIONES_CONFIRMAR = {'confirmar', 'confirmo', 'si', 'sí', 'ok', 'voy'}
+# Confirmar asistencia: solo palabras explícitas (no "si"/"ok" sueltos, que son ambiguos).
+INTENCIONES_CONFIRMAR = {'confirmar', 'confirmo', 'confirmado', 'confirmar asistencia'}
 INTENCIONES_NO_PUEDE = {'no puedo', 'no voy', 'no asistire', 'no asistiré'}
 COMANDOS_DUENO = {
     'ayuda',
@@ -102,18 +122,37 @@ def procesar_mensaje_cliente(negocio, cliente, texto):
     if not texto_normalizado:
         return _mostrar_menu(negocio, cliente, conversacion)
 
-    if texto_normalizado in {'hola', 'buenas', 'buenos dias', 'buenas tardes', 'buenas noches', 'menu', 'inicio'}:
+    if texto_normalizado in {'menu', 'inicio', 'opciones', 'ayuda menu'}:
         return _mostrar_menu(negocio, cliente, conversacion)
 
+    if texto_normalizado in {'hola', 'holi', 'ola', 'buenas', 'buenos dias', 'buenas tardes',
+                             'buenas noches', 'hi', 'hello', 'que tal', 'saludos'}:
+        return _saludar(negocio, cliente, conversacion)
+
     if not texto_normalizado.isdigit():
+        # Abandonar el flujo actual de forma amable (funciona incluso a mitad de una reserva).
+        if _contiene_intencion(texto_normalizado, INTENCIONES_SALIR):
+            conversacion.estado = ConversacionWhatsApp.Estado.FINALIZADO
+            conversacion.datos = {}
+            conversacion.save(update_fields=['estado', 'datos', 'actualizado'])
+            return _enviar(negocio, cliente.telefono,
+                           'Sin problema 😊 Aquí estoy cuando quieras. ¡Que tengas un lindo día! 💕')
         if _contiene_intencion(texto_normalizado, INTENCIONES_AYUDA):
             return _enviar(negocio, cliente.telefono, _mensaje_recepcionista(negocio))
         if _contiene_intencion(texto_normalizado, INTENCIONES_MI_TURNO):
             return _mostrar_proximo_turno(negocio, cliente)
+        if _contiene_intencion(texto_normalizado, INTENCIONES_UBICACION):
+            return _enviar(negocio, cliente.telefono, _mensaje_ubicacion(negocio))
         if _contiene_intencion(texto_normalizado, INTENCIONES_PROMOCIONES):
             return _enviar(negocio, cliente.telefono, _mensaje_promociones(negocio))
         if _contiene_intencion(texto_normalizado, INTENCIONES_HUMANO):
             return _pasar_a_humano(negocio, cliente, conversacion)
+        # Cambio de tema explícito hacia productos, aunque esté a mitad de otro flujo.
+        producto_directo = _producto_exacto_desde_texto(negocio, texto)
+        if producto_directo:
+            return _pedir_cantidad_producto(negocio, cliente, conversacion, producto_directo)
+        if _contiene_intencion(texto_normalizado, INTENCIONES_PRODUCTOS):
+            return _iniciar_productos(negocio, cliente, conversacion)
 
     if conversacion.datos.get('post_cancelacion'):
         if respuesta_afirmativa(texto):
@@ -169,12 +208,14 @@ def procesar_mensaje_cliente(negocio, cliente, texto):
     if respuesta_inteligente:
         return respuesta_inteligente
 
-    if _contiene_intencion(texto_normalizado, INTENCIONES_AGENDAR):
-        return _iniciar_agendamiento(negocio, cliente, conversacion)
+    # Reagendar y cancelar van primero: "reagendar" contiene "agendar" como
+    # subcadena, así que si AGENDAR se evaluara antes nunca se llegaría aquí.
     if _contiene_intencion(texto_normalizado, INTENCIONES_REAGENDAR) or _contiene_intencion(texto_normalizado, INTENCIONES_NO_PUEDE):
         return _iniciar_reagendamiento(negocio, cliente, conversacion)
     if _contiene_intencion(texto_normalizado, INTENCIONES_CANCELAR):
         return _iniciar_cancelacion(negocio, cliente, conversacion)
+    if _contiene_intencion(texto_normalizado, INTENCIONES_AGENDAR):
+        return _iniciar_agendamiento(negocio, cliente, conversacion)
     if _contiene_intencion(texto_normalizado, INTENCIONES_SERVICIOS):
         return _enviar(negocio, cliente.telefono, _mensaje_servicios(negocio))
     producto_para_pedido = _producto_desde_texto(negocio, texto)
@@ -229,6 +270,11 @@ def procesar_mensaje_cliente(negocio, cliente, texto):
     if intent == 'confirmar':
         return _confirmar_proximo_turno(negocio, cliente)
 
+    # Nada calzó con un comando: responde como recepcionista real (cálida y natural).
+    # Si la IA no está disponible, cae al menú clásico.
+    humana = respuesta_humana(negocio, texto, conversacion.estado, nombre_cliente=cliente.nombre)
+    if humana:
+        return _enviar(negocio, cliente.telefono, humana)
     return _mostrar_menu(negocio, cliente, conversacion)
 
 
@@ -289,17 +335,32 @@ def _notificar_dueno(negocio, mensaje):
         pass
 
 
+def _saludar(negocio, cliente, conversacion):
+    """Saludo natural, como una recepcionista real (no el menú numerado).
+    Si la IA no está disponible, cae al menú clásico."""
+    conversacion.estado = ConversacionWhatsApp.Estado.MENU_PRINCIPAL
+    conversacion.datos = {}
+    conversacion.save(update_fields=['estado', 'datos', 'actualizado'])
+    saludo = respuesta_humana(negocio, 'Hola', conversacion.estado, nombre_cliente=cliente.nombre)
+    if saludo:
+        return _enviar(negocio, cliente.telefono, saludo)
+    # Fallback humano (sin menú) si la IA no está disponible.
+    nombre = (cliente.nombre or '').split(' ')[0]
+    saludo_simple = f'¡Hola{(" " + nombre) if nombre else ""}! 💆‍♀️ Bienvenida a {negocio.nombre}. ¿En qué te puedo ayudar hoy? Puedo agendar tu cita o contarte sobre nuestros tratamientos.'
+    return _enviar(negocio, cliente.telefono, saludo_simple)
+
+
 def _mostrar_menu(negocio, cliente, conversacion):
     config = obtener_configuracion_bot(negocio)
     encabezado = config.mensaje_bienvenida.format(negocio=negocio.nombre)
     mensaje = (
         f'{encabezado}\n\n'
         'Puedes escribirme como hablarías con recepción. Por ejemplo:\n'
-        '- Quiero corte mañana a las 10\n'
-        '- ¿Cuánto cuesta barba?\n'
+        '- Quiero una limpieza facial el sábado en la mañana\n'
+        '- ¿Cuánto cuesta el diseño de cejas?\n'
         '- Quiero cambiar mi cita\n'
         '- ¿Tienen promociones?\n'
-        '- Quiero comprar cera para peinar\n\n'
+        '- Quiero comprar la Vitamina C\n\n'
         'También puedes elegir una opción:\n\n'
         + '\n'.join(f'{index}. {opcion}' for index, opcion in enumerate(MENU_OPCIONES, start=1))
         + '\n\nSi no sé resolver algo, te paso con una persona.'
@@ -312,27 +373,14 @@ def _mostrar_menu(negocio, cliente, conversacion):
 
 def _mensaje_recepcionista(negocio):
     return (
-        f'Soy la recepción virtual de {negocio.nombre}. Puedo ayudarte por aquí mismo, sin formularios.\n\n'
-        'Puedo hacer esto:\n'
-        '1. Agendar turnos según disponibilidad.\n'
-        '2. Decirte servicios, precios y duración.\n'
-        '3. Reagendar si no puedes asistir.\n'
-        '4. Cancelar tu turno.\n'
-        '5. Confirmar asistencia cuando recibas recordatorio.\n'
-        '6. Mostrar tu próximo turno.\n'
-        '7. Responder preguntas frecuentes: pagos, ubicación, domicilio, horarios.\n'
-        '8. Mostrar productos y levantar cotizaciones/pedidos.\n'
-        '9. Mostrar promociones activas.\n'
-        '10. Avisar al dueño cuando necesites atención humana.\n\n'
-        'Puedes escribir natural, por ejemplo:\n'
-        '- Necesito una cita para mañana en la tarde\n'
-        '- ¿Hay espacio hoy para barba?\n'
-        '- ¿Cuánto cuesta limpieza facial?\n'
-        '- No puedo ir, quiero cambiar mi cita\n'
-        '- ¿Dónde están ubicados?\n'
-        '- Quiero ver productos\n'
-        '- Quiero hablar con una persona\n\n'
-        'Si quieres empezar ahora, dime qué necesitas.'
+        f'¡Con gusto te ayudo! 💆‍♀️ En {negocio.nombre} puedo:\n\n'
+        '• Agendar, reagendar o cancelar tu cita\n'
+        '• Contarte sobre nuestros tratamientos\n'
+        '• Mostrarte productos y promociones\n'
+        '• Darte ubicación y horarios\n'
+        '• Recordarte tu próxima cita\n\n'
+        'Solo dime qué necesitas, por ejemplo: "quiero una limpieza facial el sábado" o '
+        '"¿cuánto cuesta el diseño de cejas?". 😊'
     )
 
 
@@ -340,29 +388,41 @@ def _iniciar_agendamiento(negocio, cliente, conversacion):
     conversacion.estado = ConversacionWhatsApp.Estado.ESPERANDO_SERVICIO
     conversacion.datos = {}
     conversacion.save(update_fields=['estado', 'datos', 'actualizado'])
-    return _enviar(negocio, cliente.telefono, _mensaje_servicios(negocio, pedir_numero=True))
+    aviso = ''
+    turno_existente = proximo_turno_activo_cliente(negocio, cliente)
+    if turno_existente:
+        aviso = (
+            f'📌 Oye, ya tienes una cita agendada: {turno_existente.servicio.nombre} el '
+            f'{formatear_fecha(turno_existente.fecha_hora_inicio)} a las '
+            f'{formatear_hora(turno_existente.fecha_hora_inicio)}.\n'
+            'Si quieres cambiar esa, escríbeme "reagendar"; o "cancelar" para anularla.\n\n'
+            'Si prefieres agregar otra cita aparte, dime el tratamiento:\n\n'
+        )
+    return _enviar(negocio, cliente.telefono, aviso + _mensaje_servicios(negocio, pedir_numero=True))
 
 
 def _mensaje_servicios(negocio, pedir_numero=False):
     servicios = list(servicios_activos(negocio))
     if not servicios:
         return 'Por ahora no tengo servicios activos configurados. Si necesitas ayuda, escribe "humano" y aviso al negocio.'
-    lineas = ['Claro. Estos son los servicios disponibles:', '']
+    lineas = ['Con gusto 💆‍♀️ Estos son nuestros tratamientos:', '']
     for index, servicio in enumerate(servicios, start=1):
-        lineas.append(f'{index}. {servicio.nombre} - {servicio.duracion_minutos} min - ${servicio.precio}')
-    if pedir_numero:
-        lineas.append('\nResponde con el número del servicio o escríbeme algo como: "quiero corte mañana a las 10".')
-    else:
-        lineas.append('\nSi quieres reservar, dime el servicio y el día. Ejemplo: "quiero barba mañana".')
+        precio = f' · ${servicio.precio:.0f}' if servicio.precio and servicio.precio > 0 else ''
+        lineas.append(f'{index}. {servicio.nombre} ({servicio.duracion_minutos} min){precio}')
+    lineas.append('\n¿Cuál te gustaría?')
     return '\n'.join(lineas)
 
 
 def _mensaje_precio_servicio(servicio):
+    if servicio.precio and servicio.precio > 0:
+        precio_linea = f'Precio: ${servicio.precio}\n'
+    else:
+        precio_linea = 'Precio: te lo confirmo al agendar 😊\n'
     return (
         f'{servicio.nombre}\n'
         f'Duración: {servicio.duracion_minutos} min\n'
-        f'Precio: ${servicio.precio}\n\n'
-        f'Si deseas reservar, puedes escribirme: "quiero {servicio.nombre} mañana".'
+        f'{precio_linea}\n'
+        f'Si deseas reservar, puedes escribirme: "quiero {servicio.nombre.lower()} mañana".'
     )
 
 
@@ -387,7 +447,7 @@ def _mensaje_productos(negocio, pedir_numero=False):
         if producto.descripcion:
             lineas.append(f'   {producto.descripcion[:120]}')
     if pedir_numero:
-        lineas.append('\nResponde con el número del producto, o escribe algo como: "quiero comprar cera para peinar".')
+        lineas.append('\n¿Cuál te interesa?')
     else:
         lineas.append('\nSi quieres cotizar, dime cuál producto y cuántas unidades necesitas.')
     return '\n'.join(lineas)
@@ -456,8 +516,8 @@ def _producto_exacto_desde_texto(negocio, texto):
         if nombre_normalizado in texto_normalizado:
             return producto
 
-        # Si el cliente escribe solo "barba", debe agendar el servicio Barba,
-        # no pedir el producto "Kit barba". Para productos aceptamos el match
+        # Si el cliente escribe solo "acné", debe agendar el tratamiento de acné,
+        # no pedir el "Kit para piel Acneica". Para productos aceptamos el match
         # inverso solo cuando el texto trae mas de una palabra.
         if len(texto_normalizado.split()) > 1 and texto_normalizado in nombre_normalizado:
             return producto
@@ -583,7 +643,7 @@ def _seleccionar_servicio(negocio, cliente, conversacion, texto):
         if ai_data.get('service_index'):
             servicio = obtener_servicio_por_posicion(negocio, ai_data['service_index'])
     if not servicio:
-        return _enviar(negocio, cliente.telefono, 'No logré identificar qué servicio deseas. Te dejo las opciones:\n\n' + _mensaje_servicios(negocio, pedir_numero=True))
+        return _enviar(negocio, cliente.telefono, 'Mmm, no estoy segura de cuál tratamiento es 😅 ¿Me dices el número o el nombre?\n\n' + _mensaje_servicios(negocio))
     return _pedir_fecha_para_servicio(negocio, cliente, conversacion, servicio)
 
 
@@ -597,9 +657,9 @@ def _servicio_desde_texto(negocio, texto):
         if nombre_normalizado in texto_normalizado or texto_normalizado in nombre_normalizado:
             return servicio
 
-    palabras_texto = {palabra for palabra in texto_normalizado.split() if len(palabra) >= 4}
+    palabras_texto = {p for p in texto_normalizado.split() if len(p) >= 4 and p not in PALABRAS_IGNORADAS}
     for servicio in servicios:
-        palabras_servicio = {palabra for palabra in normalizar_texto(servicio.nombre).split() if len(palabra) >= 4}
+        palabras_servicio = {p for p in normalizar_texto(servicio.nombre).split() if len(p) >= 4 and p not in PALABRAS_IGNORADAS}
         if palabras_texto.intersection(palabras_servicio):
             return servicio
     return None
@@ -612,9 +672,7 @@ def _pedir_fecha_para_servicio(negocio, cliente, conversacion, servicio):
     return _enviar(
         negocio,
         cliente.telefono,
-        f'Perfecto, te ayudo con {servicio.nombre}.\n\n'
-        '¿Para qué día deseas el turno?\n'
-        'Puedes escribir natural: hoy, mañana, viernes, o una fecha como 10/06/2026.',
+        f'¡Perfecto! ✨ ¿Para qué día te gustaría tu cita de {servicio.nombre}?',
     )
 
 
@@ -675,7 +733,7 @@ def _seleccionar_fecha(negocio, cliente, conversacion, texto):
         ai_data = interpretar_mensaje(negocio, texto, conversacion.estado)
         fecha = parsear_fecha_natural(ai_data.get('date_iso'))
     if not fecha:
-        return _enviar(negocio, cliente.telefono, 'No logré entender la fecha. Puedes escribir: hoy, mañana, viernes o una fecha como 10/06/2026.')
+        return _enviar(negocio, cliente.telefono, 'Disculpa, no entendí bien la fecha 😅 ¿Me la dices de otra forma? Por ejemplo: mañana o el viernes.')
     servicio = Servicio.objects.filter(pk=conversacion.datos.get('servicio_id'), negocio=negocio, activo=True).first()
     if not servicio:
         return _iniciar_agendamiento(negocio, cliente, conversacion)
@@ -705,7 +763,7 @@ def _seleccionar_hora(negocio, cliente, conversacion, texto):
         if ai_data.get('time_hhmm'):
             seleccion = _horario_desde_texto(conversacion.datos.get('horarios', []), ai_data['time_hhmm'])
     if not seleccion:
-        return _enviar(negocio, cliente.telefono, 'No logré identificar la hora. Responde con el número de la opción que prefieres.')
+        return _enviar(negocio, cliente.telefono, 'No entendí bien la hora 😅 ¿Cuál de las opciones prefieres?')
 
     servicio = Servicio.objects.filter(pk=conversacion.datos.get('servicio_id'), negocio=negocio, activo=True).first()
     if not servicio:
@@ -736,10 +794,10 @@ def _estado_inicial_turno(negocio):
 
 
 def _mensaje_horarios(disponibles):
-    lineas = ['Tengo estos horarios disponibles:', '']
+    lineas = ['Para ese día tengo estos horarios libres:', '']
     for index, item in enumerate(disponibles, start=1):
         lineas.append(f'{index}. {formatear_hora(item["inicio"])}')
-    lineas.append('\nResponde con el número de la hora que prefieres, o escribe la hora si te resulta más cómodo.')
+    lineas.append('\n¿Cuál te queda mejor?')
     return '\n'.join(lineas)
 
 
@@ -824,7 +882,7 @@ def _seleccionar_fecha_reagendamiento(negocio, cliente, conversacion, texto):
         ai_data = interpretar_mensaje(negocio, texto, conversacion.estado)
         fecha = parsear_fecha_natural(ai_data.get('date_iso'))
     if not fecha:
-        return _enviar(negocio, cliente.telefono, 'No logré entender la fecha. Puedes escribir: hoy, mañana, viernes o 10/06/2026.')
+        return _enviar(negocio, cliente.telefono, 'Disculpa, no entendí bien la fecha 😅 ¿Me la dices de otra forma? Por ejemplo: mañana o el viernes.')
     turno = Turno.objects.filter(pk=conversacion.datos.get('turno_id'), negocio=negocio, cliente=cliente).select_related('servicio').first()
     if not turno:
         return _enviar(negocio, cliente.telefono, 'No encontré el turno que quieres mover. Escribe "reagendar" para intentarlo de nuevo.')
@@ -850,7 +908,7 @@ def _seleccionar_hora_reagendamiento(negocio, cliente, conversacion, texto):
         if ai_data.get('time_hhmm'):
             seleccion = _horario_desde_texto(conversacion.datos.get('horarios', []), ai_data['time_hhmm'])
     if not seleccion:
-        return _enviar(negocio, cliente.telefono, 'No logré identificar la hora. Responde con el número de la opción que prefieres.')
+        return _enviar(negocio, cliente.telefono, 'No entendí bien la hora 😅 ¿Cuál de las opciones prefieres?')
     turno = Turno.objects.filter(pk=conversacion.datos.get('turno_id'), negocio=negocio, cliente=cliente).select_related('servicio').first()
     if not turno:
         return _enviar(negocio, cliente.telefono, 'No encontré el turno que quieres mover. Escribe "reagendar" para intentarlo de nuevo.')
@@ -862,7 +920,7 @@ def _seleccionar_hora_reagendamiento(negocio, cliente, conversacion, texto):
     conversacion.datos = {'turno_id': turno.id}
     conversacion.save(update_fields=['estado', 'datos', 'actualizado'])
     _notificar_dueno(negocio, _mensaje_reagendado_dueno(turno))
-    return _enviar(negocio, cliente.telefono, 'Listo, tu turno fue reagendado.\n\n' + _resumen_turno(turno))
+    return _enviar(negocio, cliente.telefono, '¡Listo! Tu cita quedó reagendada 🎉\n\n' + _resumen_turno(turno) + '\n\n¡Te esperamos! 💕')
 
 
 def _iniciar_cancelacion(negocio, cliente, conversacion):
@@ -970,12 +1028,23 @@ def _pasar_a_humano(negocio, cliente, conversacion):
 
 
 def _mensaje_ubicacion(negocio):
-    if negocio.direccion:
-        return f'Estamos ubicados en:\n\n{negocio.direccion}'
-    sucursal = negocio.sucursales.filter(activo=True).first()
-    if sucursal and sucursal.direccion:
-        return f'Estamos ubicados en:\n\n{sucursal.direccion}'
-    return 'Aún no hay una dirección configurada para este negocio.'
+    direccion = negocio.direccion
+    if not direccion:
+        sucursal = negocio.sucursales.filter(activo=True).first()
+        direccion = sucursal.direccion if sucursal else ''
+
+    partes = []
+    if direccion:
+        partes.append(f'📍 Estamos en:\n{direccion}')
+    horarios = negocio.horarios_atencion.filter(activo=True).order_by('dia_semana', 'hora_inicio')
+    if horarios.exists():
+        lineas = ['🕐 Horarios de atención:']
+        for h in horarios:
+            lineas.append(f'{h.get_dia_semana_display()}: {h.hora_inicio.strftime("%H:%M")} – {h.hora_fin.strftime("%H:%M")}')
+        partes.append('\n'.join(lineas))
+    if not partes:
+        return 'Aún no tenemos la ubicación configurada. Escríbeme "humano" y te ayudamos. 😊'
+    return '\n\n'.join(partes) + '\n\n¿Te gustaría agendar una cita? 💆‍♀️'
 
 
 def _resumen_turno(turno):
@@ -989,7 +1058,7 @@ def _resumen_turno(turno):
 
 
 def _mensaje_confirmacion_turno(turno):
-    return 'Listo, tu turno quedó agendado.\n\n' + _resumen_turno(turno) + '\n\nTe enviaremos un recordatorio antes de tu cita. Si necesitas cambiarlo, escribe "reagendar".'
+    return '¡Listo! Tu cita quedó agendada 🎉\n\n' + _resumen_turno(turno) + '\n\nTe llegará un recordatorio antes de tu cita. Si necesitas moverla, solo escríbeme. ¡Te esperamos! 💕'
 
 
 def _mensaje_nuevo_turno_dueno(turno):

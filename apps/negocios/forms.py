@@ -1,5 +1,5 @@
 from django import forms
-from .models import ConfiguracionNegocioBot, HorarioAtencion, Negocio, Sucursal
+from .models import ConfiguracionNegocioBot, HorarioAtencion, Negocio
 
 
 class BootstrapModelForm(forms.ModelForm):
@@ -14,38 +14,30 @@ class BootstrapModelForm(forms.ModelForm):
 class NegocioForm(BootstrapModelForm):
     class Meta:
         model = Negocio
+        # Instalación de una sola empresa: sin slug ni "activo" (campos internos).
         fields = [
             'nombre',
-            'slug',
             'telefono_principal',
             'telefono_whatsapp',
             'direccion',
             'descripcion',
             'logo',
-            'activo',
         ]
-
-
-class SucursalForm(BootstrapModelForm):
-    class Meta:
-        model = Sucursal
-        fields = ['nombre', 'direccion', 'telefono', 'activo']
 
 
 class HorarioAtencionForm(BootstrapModelForm):
     class Meta:
         model = HorarioAtencion
-        fields = ['sucursal', 'dia_semana', 'hora_inicio', 'hora_fin', 'activo']
+        # Una sola sede: sin selector de sucursal.
+        fields = ['dia_semana', 'hora_inicio', 'hora_fin', 'activo']
         widgets = {
             'hora_inicio': forms.TimeInput(attrs={'type': 'time'}),
             'hora_fin': forms.TimeInput(attrs={'type': 'time'}),
         }
 
     def __init__(self, *args, negocio=None, **kwargs):
+        # Acepta y descarta 'negocio' (lo asigna la vista) para mantener la firma.
         super().__init__(*args, **kwargs)
-        if negocio:
-            self.fields['sucursal'].queryset = Sucursal.objects.filter(negocio=negocio, activo=True)
-        self.fields['sucursal'].required = False
 
 
 class ConfiguracionNegocioBotForm(BootstrapModelForm):

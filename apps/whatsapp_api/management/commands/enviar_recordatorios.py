@@ -1,8 +1,12 @@
+import logging
+
 from django.core.management.base import BaseCommand
 from django.utils import timezone
 
 from apps.whatsapp_api.models import ConversacionWhatsApp, RecordatorioWhatsApp
 from apps.whatsapp_api.services import WhatsAppService
+
+logger = logging.getLogger('horus.recordatorios')
 
 
 class Command(BaseCommand):
@@ -30,12 +34,15 @@ class Command(BaseCommand):
                     enviados += 1
                 else:
                     recordatorio.error = str(resultado.get('error') or resultado)
+                    logger.warning('Recordatorio %s no enviado: %s', recordatorio.id, recordatorio.error)
                     errores += 1
             except Exception as exc:
                 recordatorio.error = str(exc)
+                logger.exception('Error enviando recordatorio %s: %s', recordatorio.id, exc)
                 errores += 1
             recordatorio.save(update_fields=['intentos', 'enviado', 'fecha_envio', 'error'])
 
+        logger.info('Recordatorios enviados: %s. Errores: %s', enviados, errores)
         self.stdout.write(self.style.SUCCESS(f'Recordatorios enviados: {enviados}. Errores: {errores}'))
 
 

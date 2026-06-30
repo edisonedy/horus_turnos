@@ -1,7 +1,10 @@
 <nav class="navbar navbar-expand-lg navbar-dark horus-navbar sticky-top">
     <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{% url 'landing' %}"><span class="nav-brand-mark">H</span> HORUS</a>
-        <span class="navbar-text d-none d-md-inline">Recepcionista virtual por WhatsApp</span>
+        <a class="navbar-brand fw-bold" href="{% url 'landing' %}">
+            <span class="nav-brand-mark">{{ negocio_actual.nombre|first|default:'H' }}</span>
+            {{ negocio_actual.nombre|default:'HORUS' }}
+        </a>
+        <span class="navbar-text d-none d-md-inline">Belleza y cuidado de la piel · Queens, NY</span>
         <div class="ms-auto d-flex align-items-center gap-3">
             {% if user.is_authenticated %}
                 <a class="btn btn-sm btn-outline-light" href="{% url 'dashboard' %}">Panel</a>

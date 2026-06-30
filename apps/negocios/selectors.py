@@ -4,13 +4,18 @@ from .models import ConfiguracionNegocioBot, HorarioAtencion, Negocio, Sucursal
 def obtener_negocio_usuario(usuario):
     if not usuario.is_authenticated:
         return None
-    return Negocio.objects.filter(propietario=usuario, activo=True).order_by('fecha_creacion').first()
+    propio = Negocio.objects.filter(propietario=usuario, activo=True).order_by('fecha_creacion').first()
+    if propio:
+        return propio
+    # Instalación single-tenant: cualquier administrador gestiona el negocio principal,
+    # aunque no sea su propietario directo (p. ej. el superusuario edison gestiona Daya).
+    return negocio_principal()
 
 
-def negocios_del_usuario(usuario):
-    if not usuario.is_authenticated:
-        return Negocio.objects.none()
-    return Negocio.objects.filter(propietario=usuario).order_by('nombre')
+def negocio_principal():
+    """Negocio único del sistema (instalación single-tenant). Devuelve el primer
+    negocio activo, que es el que se muestra en la landing pública y el branding."""
+    return Negocio.objects.filter(activo=True).order_by('fecha_creacion').first()
 
 
 def obtener_configuracion_bot(negocio):
