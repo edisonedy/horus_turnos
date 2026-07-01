@@ -46,6 +46,18 @@
     </div>
 </div>
 
+<div class="card table-card mb-4">
+    <div class="card-header bg-white fw-semibold">Uso de WhatsApp este mes (para estimar costo)</div>
+    <div class="card-body">
+        <div class="row text-center">
+            <div class="col-4"><div class="text-muted small">Mensajes enviados</div><div class="h4 fw-bold mb-0">{{ wa_salientes }}</div></div>
+            <div class="col-4"><div class="text-muted small">Mensajes recibidos</div><div class="h4 fw-bold mb-0">{{ wa_entrantes }}</div></div>
+            <div class="col-4"><div class="text-muted small">Recordatorios enviados</div><div class="h4 fw-bold mb-0">{{ wa_recordatorios }}</div></div>
+        </div>
+        <p class="text-muted small mb-0 mt-3">💡 Solo se cobran las <b>plantillas</b> enviadas fuera de la ventana de 24h (recordatorios/reactivación). Las respuestas del bot y los mensajes dentro de 24h son gratis. El costo real lo ves en Meta → WhatsApp Manager → Insights.</p>
+    </div>
+</div>
+
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="card table-card h-100">

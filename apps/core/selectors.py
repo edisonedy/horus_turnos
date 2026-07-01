@@ -95,3 +95,14 @@ def reporte_negocio(negocio, desde=None, hasta=None):
     }
 
 
+def uso_whatsapp(negocio):
+    """Uso de WhatsApp del mes en curso (para estimar costo)."""
+    from apps.whatsapp_api.models import MensajeWhatsApp, RecordatorioWhatsApp
+    inicio_mes = timezone.now().replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    salientes = MensajeWhatsApp.objects.filter(negocio=negocio, tipo='saliente', fecha_creacion__gte=inicio_mes).count()
+    entrantes = MensajeWhatsApp.objects.filter(negocio=negocio, tipo='entrante', fecha_creacion__gte=inicio_mes).count()
+    recordatorios = RecordatorioWhatsApp.objects.filter(
+        turno__negocio=negocio, enviado=True, fecha_envio__gte=inicio_mes).count()
+    return {'wa_salientes': salientes, 'wa_entrantes': entrantes, 'wa_recordatorios': recordatorios}
+
+

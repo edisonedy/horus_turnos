@@ -6,7 +6,7 @@ from django.http import HttpResponse
 from django.shortcuts import render
 from django.utils import timezone
 
-from apps.core.selectors import reporte_negocio, resumen_dashboard
+from apps.core.selectors import reporte_negocio, resumen_dashboard, uso_whatsapp
 from apps.negocios.selectors import horarios_activos, negocio_principal, obtener_negocio_usuario
 
 
@@ -99,6 +99,8 @@ def reportes(request):
         return _exportar_csv(datos)
 
     contexto = {'negocio': negocio, **datos}
+    if negocio:
+        contexto.update(uso_whatsapp(negocio))
     return render(request, 'core/reportes.html', contexto)
 
 

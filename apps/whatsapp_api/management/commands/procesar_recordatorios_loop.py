@@ -18,7 +18,13 @@ class Command(BaseCommand):
     def handle(self, *args, **options):
         intervalo = max(10, options['intervalo'])
         self.stdout.write(self.style.SUCCESS(f'Worker de recordatorios activo cada {intervalo} segundos.'))
+        # Los seguimientos (post-cita/reactivación) se generan más espaciado (~1 vez/hora).
+        ciclos_por_seguimiento = max(1, 3600 // intervalo)
+        ciclo = 0
         while True:
             call_command('generar_recordatorios')
+            if ciclo % ciclos_por_seguimiento == 0:
+                call_command('generar_seguimientos')
             call_command('enviar_recordatorios')
+            ciclo += 1
             sleep(intervalo)
