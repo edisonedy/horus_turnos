@@ -1,5 +1,6 @@
 from django import forms
-from .models import BloqueoHorario, Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
+from django.utils import timezone
+from .models import BloqueoHorario, Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
 
 
 class BootstrapModelForm(forms.ModelForm):
@@ -91,6 +92,39 @@ class PedidoWhatsAppForm(BootstrapModelForm):
         model = PedidoWhatsApp
         fields = ['estado', 'observacion']
         widgets = {'observacion': forms.Textarea(attrs={'rows': 2})}
+
+
+class RegistroAtencionForm(BootstrapModelForm):
+    class Meta:
+        model = RegistroAtencion
+        fields = ['fecha', 'turno', 'servicio', 'descripcion', 'producto', 'producto_libre',
+                  'producto_accion', 'profesional', 'proximo_control', 'foto_antes', 'foto_despues']
+        widgets = {
+            'fecha': forms.DateInput(attrs={'type': 'date'}),
+            'proximo_control': forms.DateInput(attrs={'type': 'date'}),
+            'descripcion': forms.Textarea(attrs={'rows': 3, 'placeholder': 'Ej: Limpieza facial profunda + extracción. Piel reaccionó bien.'}),
+            'producto_libre': forms.TextInput(attrs={'placeholder': 'Producto fuera del catálogo (opcional)'}),
+        }
+
+    def __init__(self, *args, negocio=None, cliente=None, **kwargs):
+        super().__init__(*args, **kwargs)
+        if negocio:
+            self.fields['servicio'].queryset = Servicio.objects.filter(negocio=negocio, activo=True)
+            self.fields['producto'].queryset = Producto.objects.filter(negocio=negocio, activo=True)
+            self.fields['profesional'].queryset = Profesional.objects.filter(negocio=negocio, activo=True)
+        if cliente is not None:
+            self.fields['turno'].queryset = cliente.turnos.select_related('servicio').order_by('-fecha_hora_inicio')
+        for nombre in ['turno', 'servicio', 'producto', 'profesional', 'proximo_control', 'foto_antes', 'foto_despues']:
+            self.fields[nombre].required = False
+        self.fields['turno'].empty_label = 'Sin cita asociada'
+        self.fields['servicio'].empty_label = 'Sin servicio'
+        self.fields['producto'].empty_label = 'Ninguno del catálogo'
+        self.fields['profesional'].empty_label = 'Sin asignar'
+        # los ImageField usan clase de input file, no form-control
+        for nombre in ['foto_antes', 'foto_despues']:
+            self.fields[nombre].widget.attrs['class'] = 'form-control'
+        if not self.instance.pk and not self.initial.get('fecha'):
+            self.fields['fecha'].initial = timezone.localdate()
 
 
 class BloqueoHorarioForm(BootstrapModelForm):

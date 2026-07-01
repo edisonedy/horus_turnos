@@ -81,6 +81,9 @@ def ficha_cliente(cliente):
     turnos = cliente.turnos.select_related('servicio').order_by('-fecha_hora_inicio')
     pedidos = cliente.pedidos_whatsapp.select_related('producto').order_by('-fecha_creacion')
     mensajes = cliente.mensajes_whatsapp.order_by('-fecha_creacion')[:20]
+    atenciones = cliente.atenciones.select_related('servicio', 'producto', 'profesional', 'turno').order_by('-fecha', '-fecha_creacion')
+    proximo_control = (cliente.atenciones.filter(proximo_control__gte=ahora.date())
+                       .order_by('proximo_control').values_list('proximo_control', flat=True).first())
 
     proxima = (turnos.filter(fecha_hora_inicio__gte=ahora, estado__in=ESTADOS_TURNO_ACTIVOS)
                .order_by('fecha_hora_inicio').first())
@@ -99,6 +102,8 @@ def ficha_cliente(cliente):
         'turnos': turnos[:15],
         'pedidos': pedidos[:15],
         'mensajes': mensajes,
+        'atenciones': atenciones,
+        'proximo_control': proximo_control,
         'proxima_cita': proxima,
         'ultima_visita': ultima_visita,
         'dias_ultima': dias_ultima,

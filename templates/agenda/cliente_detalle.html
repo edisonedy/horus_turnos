@@ -27,6 +27,7 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
+                    <input type="hidden" name="accion" value="ficha">
                     <label class="form-label small text-muted">Nombre</label>
                     <input class="form-control mb-2" name="nombre" value="{{ cliente.nombre }}">
                     <label class="form-label small text-muted">Email</label>
@@ -44,12 +45,110 @@
             <div class="card-body">
                 <div class="d-flex justify-content-between border-bottom py-2"><span>Próxima cita</span><strong>{% if proxima_cita %}{{ proxima_cita.fecha_hora_inicio|date:'d/m/Y H:i' }}{% else %}—{% endif %}</strong></div>
                 <div class="d-flex justify-content-between border-bottom py-2"><span>Última visita</span><strong>{% if ultima_visita %}{{ ultima_visita.fecha_hora_inicio|date:'d/m/Y' }}{% else %}—{% endif %}</strong></div>
-                <div class="d-flex justify-content-between py-2"><span>Días sin venir</span><strong>{% if dias_ultima is not None %}{{ dias_ultima }}{% else %}—{% endif %}</strong></div>
+                <div class="d-flex justify-content-between border-bottom py-2"><span>Días sin venir</span><strong>{% if dias_ultima is not None %}{{ dias_ultima }}{% else %}—{% endif %}</strong></div>
+                <div class="d-flex justify-content-between py-2"><span>Próximo control</span><strong>{% if proximo_control %}{{ proximo_control|date:'d/m/Y' }}{% else %}—{% endif %}</strong></div>
             </div>
         </div>
     </div>
 
     <div class="col-lg-7">
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span>Historial de atenciones · qué se hizo</span>
+                <button class="btn btn-sm btn-horus rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#formAtencion">+ Registrar</button>
+            </div>
+            <div class="collapse{% if atencion_form.errors %} show{% endif %}" id="formAtencion">
+                <div class="card-body border-bottom bg-light-subtle">
+                    <form method="post" enctype="multipart/form-data" class="row g-2">
+                        {% csrf_token %}
+                        <input type="hidden" name="accion" value="atencion">
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Fecha</label>
+                            {{ atencion_form.fecha }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Cita asociada</label>
+                            {{ atencion_form.turno }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Servicio / tratamiento</label>
+                            {{ atencion_form.servicio }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Atendió</label>
+                            {{ atencion_form.profesional }}
+                        </div>
+                        <div class="col-12">
+                            <label class="form-label small text-muted mb-1">¿Qué se hizo?</label>
+                            {{ atencion_form.descripcion }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Producto / crema</label>
+                            {{ atencion_form.producto }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">¿Aplicado o vendido?</label>
+                            {{ atencion_form.producto_accion }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Otro producto (fuera del catálogo)</label>
+                            {{ atencion_form.producto_libre }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Próximo control (seguimiento)</label>
+                            {{ atencion_form.proximo_control }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Foto antes</label>
+                            {{ atencion_form.foto_antes }}
+                        </div>
+                        <div class="col-6">
+                            <label class="form-label small text-muted mb-1">Foto después</label>
+                            {{ atencion_form.foto_despues }}
+                        </div>
+                        <div class="col-12 mt-2">
+                            <button class="btn btn-horus rounded-pill">Guardar atención</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="card-body">
+                {% for a in atenciones %}
+                    <div class="border-bottom pb-3 mb-3">
+                        <div class="d-flex justify-content-between align-items-start">
+                            <div>
+                                <strong>{{ a.fecha|date:'d/m/Y' }}</strong>
+                                {% if a.servicio %}<span class="badge text-bg-light">{{ a.servicio.nombre }}</span>{% endif %}
+                            </div>
+                            <form method="post" onsubmit="return confirm('¿Eliminar este registro?');" class="m-0">
+                                {% csrf_token %}
+                                <input type="hidden" name="accion" value="eliminar_atencion">
+                                <input type="hidden" name="atencion_id" value="{{ a.id }}">
+                                <button class="btn btn-sm btn-link text-danger p-0" title="Eliminar">✕</button>
+                            </form>
+                        </div>
+                        <div class="mt-1" style="white-space:pre-line">{{ a.descripcion }}</div>
+                        {% if a.producto_texto %}
+                            <div class="small text-muted mt-1">
+                                {% if a.producto_accion != 'ninguno' %}{{ a.get_producto_accion_display }}:{% else %}Producto:{% endif %}
+                                {{ a.producto_texto }}
+                            </div>
+                        {% endif %}
+                        {% if a.profesional %}<div class="small text-muted">Atendió: {{ a.profesional.nombre }}</div>{% endif %}
+                        {% if a.proximo_control %}<div class="small text-muted">Próximo control: {{ a.proximo_control|date:'d/m/Y' }}</div>{% endif %}
+                        {% if a.foto_antes or a.foto_despues %}
+                            <div class="d-flex gap-2 mt-2">
+                                {% if a.foto_antes %}<a href="{{ a.foto_antes.url }}" target="_blank" rel="noopener"><img src="{{ a.foto_antes.url }}" alt="Antes" style="width:84px;height:84px;object-fit:cover;border-radius:8px"></a>{% endif %}
+                                {% if a.foto_despues %}<a href="{{ a.foto_despues.url }}" target="_blank" rel="noopener"><img src="{{ a.foto_despues.url }}" alt="Después" style="width:84px;height:84px;object-fit:cover;border-radius:8px"></a>{% endif %}
+                            </div>
+                        {% endif %}
+                    </div>
+                {% empty %}
+                    <div class="text-muted">Todavía no hay atenciones registradas. Usa "+ Registrar" para anotar qué se hizo en cada visita.</div>
+                {% endfor %}
+            </div>
+        </div>
+
         <div class="card table-card mb-4">
             <div class="card-header bg-white fw-semibold">Historial de citas</div>
             <div class="table-responsive">

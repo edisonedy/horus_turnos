@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
+from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
 
 
 @admin.register(Profesional)
@@ -65,6 +65,14 @@ class ListaEsperaAdmin(admin.ModelAdmin):
     list_display = ('cliente', 'servicio', 'negocio', 'fecha_deseada', 'estado', 'fecha_creacion')
     list_filter = ('negocio', 'estado', 'fecha_deseada')
     search_fields = ('cliente__nombre', 'cliente__telefono', 'servicio__nombre')
+
+
+@admin.register(RegistroAtencion)
+class RegistroAtencionAdmin(admin.ModelAdmin):
+    list_display = ('cliente', 'fecha', 'servicio', 'producto', 'producto_accion', 'proximo_control', 'profesional', 'negocio')
+    list_filter = ('negocio', 'producto_accion', 'fecha', 'proximo_control')
+    search_fields = ('cliente__nombre', 'cliente__telefono', 'descripcion', 'producto_libre')
+    date_hierarchy = 'fecha'
 
 
 @admin.register(BloqueoHorario)

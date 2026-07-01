@@ -95,6 +95,7 @@ class Cliente(models.Model):
     telefono = models.CharField(max_length=32)
     email = models.EmailField(blank=True)
     fecha_nacimiento = models.DateField(blank=True, null=True)
+    ultimo_cumple_saludado = models.PositiveIntegerField(blank=True, null=True)  # año del último saludo
     observacion = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 
@@ -175,6 +176,45 @@ class Turno(models.Model):
 
     def __str__(self):
         return f'{self.cliente} - {self.servicio.nombre} - {self.fecha_hora_inicio:%Y-%m-%d %H:%M}'
+
+
+class RegistroAtencion(models.Model):
+    """Bitácora de qué se hizo a la clienta en cada visita: tratamiento aplicado,
+    producto/crema usado o vendido y observaciones. Alimenta el historial de la ficha."""
+
+    class Accion(models.TextChoices):
+        NINGUNO = 'ninguno', 'Sin producto'
+        APLICADO = 'aplicado', 'Aplicado'
+        VENDIDO = 'vendido', 'Vendido'
+        RECOMENDADO = 'recomendado', 'Recomendado'
+
+    negocio = models.ForeignKey('negocios.Negocio', on_delete=models.CASCADE, related_name='atenciones')
+    cliente = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='atenciones')
+    turno = models.ForeignKey(Turno, on_delete=models.SET_NULL, related_name='atenciones', blank=True, null=True)
+    profesional = models.ForeignKey(Profesional, on_delete=models.SET_NULL, related_name='atenciones', blank=True, null=True)
+    servicio = models.ForeignKey(Servicio, on_delete=models.SET_NULL, related_name='atenciones', blank=True, null=True)
+    fecha = models.DateField()
+    descripcion = models.TextField(help_text='Qué se hizo en la visita: tratamiento, procedimiento, observaciones.')
+    producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, related_name='atenciones', blank=True, null=True)
+    producto_libre = models.CharField(max_length=160, blank=True, help_text='Producto/crema que no está en el catálogo.')
+    producto_accion = models.CharField(max_length=16, choices=Accion.choices, default=Accion.NINGUNO)
+    foto_antes = models.ImageField(upload_to='atenciones/', blank=True, null=True)
+    foto_despues = models.ImageField(upload_to='atenciones/', blank=True, null=True)
+    proximo_control = models.DateField(blank=True, null=True, help_text='Cuándo debería volver para seguimiento.')
+    fecha_creacion = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-fecha', '-fecha_creacion']
+        indexes = [models.Index(fields=['cliente', 'fecha'])]
+        verbose_name = 'registro de atención'
+        verbose_name_plural = 'registros de atención'
+
+    def __str__(self):
+        return f'{self.cliente} - {self.fecha:%Y-%m-%d}'
+
+    @property
+    def producto_texto(self):
+        return self.producto.nombre if self.producto else self.producto_libre
 
 
 class ListaEspera(models.Model):

@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 
-from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, ServicioForm, TurnoForm
-from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
+from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, RegistroAtencionForm, ServicioForm, TurnoForm
+from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
 from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, ficha_cliente, tablero_retencion, turnos_negocio
 from apps.negocios.selectors import obtener_negocio_usuario
 
@@ -188,20 +188,37 @@ def cliente_detalle(request, cliente_id):
         return redirect('configuracion_negocio')
     cliente = get_object_or_404(Cliente, pk=cliente_id, negocio=negocio)
 
+    atencion_form = RegistroAtencionForm(negocio=negocio, cliente=cliente)
     if request.method == 'POST':
-        cliente.nombre = request.POST.get('nombre', '').strip()
-        cliente.email = request.POST.get('email', '').strip()
-        cliente.observacion = request.POST.get('observacion', '').strip()
-        cliente.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
-        cliente.save(update_fields=['nombre', 'email', 'observacion', 'fecha_nacimiento'])
-        messages.success(request, 'Ficha del cliente actualizada.')
-        return redirect('cliente_detalle', cliente_id=cliente.id)
+        accion = request.POST.get('accion', 'ficha')
+        if accion == 'eliminar_atencion':
+            RegistroAtencion.objects.filter(pk=request.POST.get('atencion_id'), cliente=cliente).delete()
+            messages.success(request, 'Registro de atención eliminado.')
+            return redirect('cliente_detalle', cliente_id=cliente.id)
+        if accion == 'atencion':
+            atencion_form = RegistroAtencionForm(request.POST, request.FILES, negocio=negocio, cliente=cliente)
+            if atencion_form.is_valid():
+                registro = atencion_form.save(commit=False)
+                registro.negocio = negocio
+                registro.cliente = cliente
+                registro.save()
+                messages.success(request, 'Atención registrada en el historial.')
+                return redirect('cliente_detalle', cliente_id=cliente.id)
+        else:
+            cliente.nombre = request.POST.get('nombre', '').strip()
+            cliente.email = request.POST.get('email', '').strip()
+            cliente.observacion = request.POST.get('observacion', '').strip()
+            cliente.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
+            cliente.save(update_fields=['nombre', 'email', 'observacion', 'fecha_nacimiento'])
+            messages.success(request, 'Ficha del cliente actualizada.')
+            return redirect('cliente_detalle', cliente_id=cliente.id)
 
     wa = f"https://wa.me/{cliente.telefono}" if cliente.telefono else ''
     return render(request, 'agenda/cliente_detalle.html', {
         'negocio': negocio,
         'cliente': cliente,
         'wa_link': wa,
+        'atencion_form': atencion_form,
         **ficha_cliente(cliente),
     })
 
