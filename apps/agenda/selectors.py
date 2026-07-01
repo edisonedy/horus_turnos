@@ -1,8 +1,38 @@
-from django.db.models import Q, Sum
+from datetime import timedelta
+
+from django.db.models import Max, Q, Sum
 from django.utils import timezone
 from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
 
 ESTADOS_TURNO_ACTIVOS = [Turno.Estado.PENDIENTE, Turno.Estado.CONFIRMADO, Turno.Estado.REAGENDADO]
+
+DIAS_DORMIDA = 45
+
+
+def clientes_segmentados(negocio, segmento=None):
+    """Clientas anotadas con su última cita y segmento (Nueva/Activa/Dormida).
+    Si se pasa `segmento`, filtra solo esas."""
+    limite = timezone.now() - timedelta(days=DIAS_DORMIDA)
+    qs = negocio.clientes.annotate(ultima_cita=Max('turnos__fecha_hora_inicio')).order_by('-ultima_cita')
+
+    if segmento == 'nueva':
+        qs = qs.filter(ultima_cita__isnull=True)
+    elif segmento == 'activa':
+        qs = qs.filter(ultima_cita__gte=limite)
+    elif segmento == 'dormida':
+        qs = qs.filter(ultima_cita__lt=limite)
+    return qs
+
+
+def conteo_segmentos(negocio):
+    limite = timezone.now() - timedelta(days=DIAS_DORMIDA)
+    qs = negocio.clientes.annotate(ultima_cita=Max('turnos__fecha_hora_inicio'))
+    return {
+        'total': qs.count(),
+        'activa': qs.filter(ultima_cita__gte=limite).count(),
+        'dormida': qs.filter(ultima_cita__lt=limite).count(),
+        'nueva': qs.filter(ultima_cita__isnull=True).count(),
+    }
 
 
 def ficha_cliente(cliente):

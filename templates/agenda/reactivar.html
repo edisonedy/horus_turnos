@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block title %}Reactivar clientas · {{ negocio.nombre }}{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="h3 mb-1">Reactivar clientas</h1>
+    <p class="text-muted mb-0">Vuelve a atraer a las clientas que no vienen hace tiempo. Segmenta y envía un mensaje.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3">
+        <a href="?segmento=dormida" class="text-decoration-none">
+            <div class="card metric-card {% if segmento == 'dormida' %}border-warning border-2{% endif %}"><div class="card-body">
+                <div class="text-muted small">💤 Dormidas (+45 días)</div><div class="h3 fw-bold mb-0 text-warning">{{ conteo.dormida }}</div></div></div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?segmento=activa" class="text-decoration-none">
+            <div class="card metric-card {% if segmento == 'activa' %}border-success border-2{% endif %}"><div class="card-body">
+                <div class="text-muted small">🟢 Activas</div><div class="h3 fw-bold mb-0 text-success">{{ conteo.activa }}</div></div></div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <a href="?segmento=nueva" class="text-decoration-none">
+            <div class="card metric-card {% if segmento == 'nueva' %}border-secondary border-2{% endif %}"><div class="card-body">
+                <div class="text-muted small">⚪ Nuevas (sin citas)</div><div class="h3 fw-bold mb-0">{{ conteo.nueva }}</div></div></div>
+        </a>
+    </div>
+    <div class="col-6 col-md-3">
+        <div class="card metric-card"><div class="card-body">
+            <div class="text-muted small">Total clientas</div><div class="h3 fw-bold mb-0">{{ conteo.total }}</div></div></div>
+    </div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Enviar mensaje al segmento:
+                <span class="badge text-bg-dark text-uppercase">{{ segmento }}</span> ({{ clientes|length }})</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <input type="hidden" name="segmento" value="{{ segmento }}">
+                    <label class="form-label small text-muted">Mensaje (usa <code>{nombre}</code> para personalizar)</label>
+                    <textarea class="form-control mb-3" name="mensaje" rows="4" placeholder="Hola {nombre} 🌸 Hace tiempo no te vemos en Daya Facial Care. ¿Te agendo un facial esta semana? Tenemos 10% de descuento 💆‍♀️">Hola {nombre} 🌸 Hace tiempo no te vemos en Daya Facial Care. ¿Te agendo un facial? Escríbenos y con gusto te damos un horario 💆‍♀️</textarea>
+                    <button class="btn btn-horus rounded-pill" onclick="return confirm('¿Enviar el mensaje a las clientas de este segmento?')">Enviar a {{ clientes|length }} clienta(s)</button>
+                </form>
+                <div class="alert alert-warning mt-3 mb-0 small">
+                    ⚠️ WhatsApp solo permite texto libre dentro de 24h desde el último mensaje de la clienta.
+                    Para llegar a clientas <b>sin contacto reciente</b> (dormidas) se necesita una
+                    <b>plantilla aprobada por Meta</b> (costo bajo). Sin plantilla, esos envíos fallarán.
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Clientas en este segmento</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Cliente</th><th>Teléfono</th><th>Última cita</th><th></th></tr></thead>
+                    <tbody>
+                    {% for c in clientes %}
+                        <tr>
+                            <td>{{ c.nombre|default:'Sin nombre' }}</td>
+                            <td>{{ c.telefono }}</td>
+                            <td>{% if c.ultima_cita %}{{ c.ultima_cita|date:'d/m/Y' }}{% else %}—{% endif %}</td>
+                            <td><a href="{% url 'cliente_detalle' c.id %}" class="btn btn-sm btn-outline-dark rounded-pill">Ficha</a></td>
+                        </tr>
+                    {% empty %}<tr><td colspan="4" class="text-muted">No hay clientas en este segmento.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

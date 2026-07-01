@@ -1,10 +1,11 @@
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
 
 from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, ServicioForm, TurnoForm
 from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
-from apps.agenda.selectors import clientes_negocio, ficha_cliente, turnos_negocio
+from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, ficha_cliente, turnos_negocio
 from apps.negocios.selectors import obtener_negocio_usuario
 
 
@@ -201,6 +202,42 @@ def cliente_detalle(request, cliente_id):
         'cliente': cliente,
         'wa_link': wa,
         **ficha_cliente(cliente),
+    })
+
+
+@login_required
+def reactivar(request):
+    negocio = _negocio_requerido(request)
+    if not negocio:
+        return redirect('configuracion_negocio')
+
+    segmento = request.GET.get('segmento', 'dormida')
+    if request.method == 'POST':
+        segmento = request.POST.get('segmento', 'dormida')
+        mensaje = (request.POST.get('mensaje') or '').strip()
+        if not mensaje:
+            messages.warning(request, 'Escribe un mensaje para enviar.')
+            return redirect(f"{reverse('reactivar')}?segmento={segmento}")
+        from apps.whatsapp_api.services import WhatsAppService
+        servicio = WhatsAppService(negocio=negocio)
+        enviados = fallidos = 0
+        for cli in clientes_segmentados(negocio, segmento)[:100]:
+            nombre = (cli.nombre or '').split(' ')[0] or 'Hola'
+            resultado = servicio.enviar_texto(cli.telefono, mensaje.replace('{nombre}', nombre))
+            if resultado.get('ok'):
+                enviados += 1
+            else:
+                fallidos += 1
+        messages.success(request, f'Enviados: {enviados}. Fallidos: {fallidos}. '
+                                  f'(Los fallidos suelen ser por la ventana de 24h de WhatsApp: para llegar a clientas '
+                                  f'sin contacto reciente se necesita una plantilla aprobada por Meta.)')
+        return redirect(f"{reverse('reactivar')}?segmento={segmento}")
+
+    return render(request, 'agenda/reactivar.html', {
+        'negocio': negocio,
+        'segmento': segmento,
+        'conteo': conteo_segmentos(negocio),
+        'clientes': clientes_segmentados(negocio, segmento)[:100],
     })
 
 
