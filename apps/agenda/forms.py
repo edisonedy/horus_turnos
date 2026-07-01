@@ -98,7 +98,8 @@ class RegistroAtencionForm(BootstrapModelForm):
     class Meta:
         model = RegistroAtencion
         fields = ['fecha', 'turno', 'servicio', 'descripcion', 'producto', 'producto_libre',
-                  'producto_accion', 'profesional', 'proximo_control', 'foto_antes', 'foto_despues']
+                  'producto_accion', 'producto_cantidad', 'producto_precio', 'profesional',
+                  'proximo_control', 'foto_antes', 'foto_despues']
         widgets = {
             'fecha': forms.DateInput(attrs={'type': 'date'}),
             'proximo_control': forms.DateInput(attrs={'type': 'date'}),

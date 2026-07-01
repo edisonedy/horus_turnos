@@ -198,6 +198,8 @@ class RegistroAtencion(models.Model):
     producto = models.ForeignKey(Producto, on_delete=models.SET_NULL, related_name='atenciones', blank=True, null=True)
     producto_libre = models.CharField(max_length=160, blank=True, help_text='Producto/crema que no está en el catálogo.')
     producto_accion = models.CharField(max_length=16, choices=Accion.choices, default=Accion.NINGUNO)
+    producto_cantidad = models.PositiveIntegerField(default=1)
+    producto_precio = models.DecimalField(max_digits=10, decimal_places=2, default=0, help_text='Precio de venta en esta visita (si se vendió).')
     foto_antes = models.ImageField(upload_to='atenciones/', blank=True, null=True)
     foto_despues = models.ImageField(upload_to='atenciones/', blank=True, null=True)
     proximo_control = models.DateField(blank=True, null=True, help_text='Cuándo debería volver para seguimiento.')
@@ -215,6 +217,12 @@ class RegistroAtencion(models.Model):
     @property
     def producto_texto(self):
         return self.producto.nombre if self.producto else self.producto_libre
+
+    @property
+    def producto_total(self):
+        if self.producto_accion == self.Accion.VENDIDO:
+            return self.producto_cantidad * self.producto_precio
+        return 0
 
 
 class ListaEspera(models.Model):

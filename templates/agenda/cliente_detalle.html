@@ -59,9 +59,11 @@
             </div>
             <div class="collapse{% if atencion_form.errors or abrir_atencion %} show{% endif %}" id="formAtencion">
                 <div class="card-body border-bottom bg-light-subtle">
+                    {% if editando %}<div class="small fw-semibold text-primary mb-2">Editando atención del {{ editando.fecha|date:'d/m/Y' }}</div>{% endif %}
                     <form method="post" enctype="multipart/form-data" class="row g-2">
                         {% csrf_token %}
                         <input type="hidden" name="accion" value="atencion">
+                        {% if editando %}<input type="hidden" name="atencion_id" value="{{ editando.id }}">{% endif %}
                         <div class="col-6">
                             <label class="form-label small text-muted mb-1">Fecha</label>
                             {{ atencion_form.fecha }}
@@ -94,6 +96,14 @@
                             <label class="form-label small text-muted mb-1">Otro producto (fuera del catálogo)</label>
                             {{ atencion_form.producto_libre }}
                         </div>
+                        <div class="col-3">
+                            <label class="form-label small text-muted mb-1">Cantidad</label>
+                            {{ atencion_form.producto_cantidad }}
+                        </div>
+                        <div class="col-3">
+                            <label class="form-label small text-muted mb-1">Precio (si vendido)</label>
+                            {{ atencion_form.producto_precio }}
+                        </div>
                         <div class="col-6">
                             <label class="form-label small text-muted mb-1">Próximo control (seguimiento)</label>
                             {{ atencion_form.proximo_control }}
@@ -107,7 +117,8 @@
                             {{ atencion_form.foto_despues }}
                         </div>
                         <div class="col-12 mt-2">
-                            <button class="btn btn-horus rounded-pill">Guardar atención</button>
+                            <button class="btn btn-horus rounded-pill">{% if editando %}Guardar cambios{% else %}Guardar atención{% endif %}</button>
+                            {% if editando %}<a href="{% url 'cliente_detalle' cliente.id %}" class="btn btn-outline-secondary rounded-pill">Cancelar</a>{% endif %}
                         </div>
                     </form>
                 </div>
@@ -120,18 +131,22 @@
                                 <strong>{{ a.fecha|date:'d/m/Y' }}</strong>
                                 {% if a.servicio %}<span class="badge text-bg-light">{{ a.servicio.nombre }}</span>{% endif %}
                             </div>
-                            <form method="post" onsubmit="return confirm('¿Eliminar este registro?');" class="m-0">
-                                {% csrf_token %}
-                                <input type="hidden" name="accion" value="eliminar_atencion">
-                                <input type="hidden" name="atencion_id" value="{{ a.id }}">
-                                <button class="btn btn-sm btn-link text-danger p-0" title="Eliminar">✕</button>
-                            </form>
+                            <div class="d-flex align-items-center gap-2">
+                                <a href="{% url 'cliente_detalle' cliente.id %}?editar={{ a.id }}#formAtencion" class="btn btn-sm btn-link text-decoration-none p-0" title="Editar">Editar</a>
+                                <form method="post" onsubmit="return confirm('¿Eliminar este registro?');" class="m-0">
+                                    {% csrf_token %}
+                                    <input type="hidden" name="accion" value="eliminar_atencion">
+                                    <input type="hidden" name="atencion_id" value="{{ a.id }}">
+                                    <button class="btn btn-sm btn-link text-danger p-0" title="Eliminar">✕</button>
+                                </form>
+                            </div>
                         </div>
                         <div class="mt-1" style="white-space:pre-line">{{ a.descripcion }}</div>
                         {% if a.producto_texto %}
                             <div class="small text-muted mt-1">
                                 {% if a.producto_accion != 'ninguno' %}{{ a.get_producto_accion_display }}:{% else %}Producto:{% endif %}
-                                {{ a.producto_texto }}
+                                {{ a.producto_texto }}{% if a.producto_cantidad > 1 %} x{{ a.producto_cantidad }}{% endif %}
+                                {% if a.producto_total %} · <strong>${{ a.producto_total }}</strong>{% endif %}
                             </div>
                         {% endif %}
                         {% if a.profesional %}<div class="small text-muted">Atendió: {{ a.profesional.nombre }}</div>{% endif %}

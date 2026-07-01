@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Count, Max, Q, Sum
+from django.db.models import Count, F, Max, Q, Sum
 from django.utils import timezone
 from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
 
@@ -89,7 +89,10 @@ def ficha_cliente(cliente):
                .order_by('fecha_hora_inicio').first())
     ultima_visita = turnos.filter(estado=Turno.Estado.ATENDIDO).order_by('-fecha_hora_inicio').first()
     dias_ultima = (ahora.date() - ultima_visita.fecha_hora_inicio.date()).days if ultima_visita else None
-    gastado = pedidos.exclude(estado=PedidoWhatsApp.Estado.CANCELADO).aggregate(t=Sum('total'))['t'] or 0
+    gastado_pedidos = pedidos.exclude(estado=PedidoWhatsApp.Estado.CANCELADO).aggregate(t=Sum('total'))['t'] or 0
+    gastado_visitas = (atenciones.filter(producto_accion=RegistroAtencion.Accion.VENDIDO)
+                       .aggregate(t=Sum(F('producto_cantidad') * F('producto_precio')))['t'] or 0)
+    gastado = gastado_pedidos + gastado_visitas
 
     if dias_ultima is None:
         segmento = 'Nueva'

@@ -188,6 +188,12 @@ def cliente_detalle(request, cliente_id):
         return redirect('configuracion_negocio')
     cliente = get_object_or_404(Cliente, pk=cliente_id, negocio=negocio)
 
+    # Edición: ?editar=<id> carga esa atención en el formulario.
+    editando = None
+    editar_id = request.GET.get('editar')
+    if editar_id:
+        editando = RegistroAtencion.objects.filter(pk=editar_id, cliente=cliente).first()
+
     prefill_turno = None
     turno_id = request.GET.get('turno')
     if turno_id:
@@ -199,7 +205,7 @@ def cliente_detalle(request, cliente_id):
                 'servicio': turno_ref.servicio_id,
                 'profesional': turno_ref.profesional_id,
             }
-    atencion_form = RegistroAtencionForm(negocio=negocio, cliente=cliente, initial=prefill_turno)
+    atencion_form = RegistroAtencionForm(instance=editando, negocio=negocio, cliente=cliente, initial=prefill_turno)
     if request.method == 'POST':
         accion = request.POST.get('accion', 'ficha')
         if accion == 'eliminar_atencion':
@@ -207,13 +213,17 @@ def cliente_detalle(request, cliente_id):
             messages.success(request, 'Registro de atención eliminado.')
             return redirect('cliente_detalle', cliente_id=cliente.id)
         if accion == 'atencion':
-            atencion_form = RegistroAtencionForm(request.POST, request.FILES, negocio=negocio, cliente=cliente)
+            instancia = RegistroAtencion.objects.filter(pk=request.POST.get('atencion_id'), cliente=cliente).first()
+            atencion_form = RegistroAtencionForm(request.POST, request.FILES, instance=instancia, negocio=negocio, cliente=cliente)
             if atencion_form.is_valid():
                 registro = atencion_form.save(commit=False)
                 registro.negocio = negocio
                 registro.cliente = cliente
+                # si se vendió un producto del catálogo sin precio, usar el del catálogo
+                if registro.producto_accion == RegistroAtencion.Accion.VENDIDO and not registro.producto_precio and registro.producto:
+                    registro.producto_precio = registro.producto.precio
                 registro.save()
-                messages.success(request, 'Atención registrada en el historial.')
+                messages.success(request, 'Atención actualizada.' if instancia else 'Atención registrada en el historial.')
                 return redirect('cliente_detalle', cliente_id=cliente.id)
         else:
             cliente.nombre = request.POST.get('nombre', '').strip()
@@ -230,7 +240,8 @@ def cliente_detalle(request, cliente_id):
         'cliente': cliente,
         'wa_link': wa,
         'atencion_form': atencion_form,
-        'abrir_atencion': bool(prefill_turno),
+        'abrir_atencion': bool(prefill_turno) or bool(editando),
+        'editando': editando,
         **ficha_cliente(cliente),
     })
 
