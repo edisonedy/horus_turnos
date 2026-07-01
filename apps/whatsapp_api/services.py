@@ -142,19 +142,21 @@ class WhatsAppService:
     def enviar_plantilla(self, telefono, template_name, language_code, components=None):
         return self.enviar_template_generico(telefono, template_name, language_code, components)
 
-    def enviar_plantilla_recordatorio(self, telefono, parametros):
-        """Envía la plantilla de recordatorio con los parámetros del cuerpo
-        (nombre, negocio, fecha, hora). Sirve para llegar fuera de la ventana de 24h."""
+    def _enviar_plantilla_con_params(self, telefono, template_name, parametros):
         componentes = [{
             'type': 'body',
             'parameters': [{'type': 'text', 'text': str(p)} for p in parametros],
         }]
         return self.enviar_template_generico(
-            telefono,
-            settings.WHATSAPP_TEMPLATE_RECORDATORIO,
-            settings.WHATSAPP_TEMPLATE_IDIOMA,
-            componentes,
-        )
+            telefono, template_name, settings.WHATSAPP_TEMPLATE_IDIOMA, componentes)
+
+    def enviar_plantilla_recordatorio(self, telefono, parametros):
+        """Recordatorio de cita (nombre, negocio, fecha, hora). Llega fuera de la ventana de 24h."""
+        return self._enviar_plantilla_con_params(telefono, settings.WHATSAPP_TEMPLATE_RECORDATORIO, parametros)
+
+    def enviar_plantilla_reactivacion(self, telefono, parametros):
+        """Reactivación/seguimiento (nombre, negocio). Llega fuera de la ventana de 24h."""
+        return self._enviar_plantilla_con_params(telefono, settings.WHATSAPP_TEMPLATE_REACTIVACION, parametros)
 
     def enviar_menu_texto(self, telefono, mensaje, opciones):
         lineas = [mensaje, '']

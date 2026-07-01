@@ -36,18 +36,17 @@ class Command(BaseCommand):
                 turno = recordatorio.turno
                 service = WhatsAppService(negocio=turno.negocio)
                 es_pre_cita = recordatorio.tipo in TIPOS_PRE_CITA
-                resultado = None
+                nombre = (turno.cliente.nombre or 'Hola').split(' ')[0]
                 if es_pre_cita:
                     fecha_local = timezone.localtime(turno.fecha_hora_inicio)
-                    parametros = [
-                        (turno.cliente.nombre or 'Hola').split(' ')[0],
-                        turno.negocio.nombre,
-                        fecha_local.strftime('%d/%m/%Y'),
-                        fecha_local.strftime('%H:%M'),
-                    ]
-                    # Plantilla primero (llega fuera de la ventana de 24h).
-                    resultado = service.enviar_plantilla_recordatorio(turno.cliente.telefono, parametros)
-                # Seguimientos, o si la plantilla falló: texto libre (dentro de 24h).
+                    resultado = service.enviar_plantilla_recordatorio(
+                        turno.cliente.telefono,
+                        [nombre, turno.negocio.nombre, fecha_local.strftime('%d/%m/%Y'), fecha_local.strftime('%H:%M')])
+                else:
+                    # Seguimientos (post-cita, no-show, reactivación) → plantilla de reactivación.
+                    resultado = service.enviar_plantilla_reactivacion(
+                        turno.cliente.telefono, [nombre, turno.negocio.nombre])
+                # Si la plantilla falló (ej. aún no aprobada): texto libre (dentro de 24h).
                 if not resultado or not resultado.get('ok'):
                     resultado = service.enviar_texto(turno.cliente.telefono, recordatorio.mensaje)
                 if resultado.get('ok'):
