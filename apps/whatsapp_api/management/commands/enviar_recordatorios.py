@@ -24,8 +24,20 @@ class Command(BaseCommand):
         for recordatorio in recordatorios:
             recordatorio.intentos += 1
             try:
-                service = WhatsAppService(negocio=recordatorio.turno.negocio)
-                resultado = service.enviar_texto(recordatorio.turno.cliente.telefono, recordatorio.mensaje)
+                turno = recordatorio.turno
+                service = WhatsAppService(negocio=turno.negocio)
+                fecha_local = timezone.localtime(turno.fecha_hora_inicio)
+                parametros = [
+                    (turno.cliente.nombre or 'Hola').split(' ')[0],
+                    turno.negocio.nombre,
+                    fecha_local.strftime('%d/%m/%Y'),
+                    fecha_local.strftime('%H:%M'),
+                ]
+                # Plantilla primero (llega fuera de la ventana de 24h). Si falla
+                # (p. ej. aún no está aprobada), cae a texto libre (dentro de 24h).
+                resultado = service.enviar_plantilla_recordatorio(turno.cliente.telefono, parametros)
+                if not resultado.get('ok'):
+                    resultado = service.enviar_texto(turno.cliente.telefono, recordatorio.mensaje)
                 if resultado.get('ok'):
                     recordatorio.enviado = True
                     recordatorio.fecha_envio = timezone.now()

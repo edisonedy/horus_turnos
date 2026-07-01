@@ -142,6 +142,20 @@ class WhatsAppService:
     def enviar_plantilla(self, telefono, template_name, language_code, components=None):
         return self.enviar_template_generico(telefono, template_name, language_code, components)
 
+    def enviar_plantilla_recordatorio(self, telefono, parametros):
+        """Envía la plantilla de recordatorio con los parámetros del cuerpo
+        (nombre, negocio, fecha, hora). Sirve para llegar fuera de la ventana de 24h."""
+        componentes = [{
+            'type': 'body',
+            'parameters': [{'type': 'text', 'text': str(p)} for p in parametros],
+        }]
+        return self.enviar_template_generico(
+            telefono,
+            settings.WHATSAPP_TEMPLATE_RECORDATORIO,
+            settings.WHATSAPP_TEMPLATE_IDIOMA,
+            componentes,
+        )
+
     def enviar_menu_texto(self, telefono, mensaje, opciones):
         lineas = [mensaje, '']
         for index, opcion in enumerate(opciones, start=1):

@@ -98,6 +98,9 @@ WHATSAPP_VERIFY_TOKEN = config('WHATSAPP_VERIFY_TOKEN', default='horus_turnos_ve
 WHATSAPP_APP_SECRET = config('WHATSAPP_APP_SECRET', default='')
 WHATSAPP_GRAPH_API_VERSION = config('WHATSAPP_GRAPH_API_VERSION', default='v20.0')
 WHATSAPP_REQUEST_TIMEOUT = config('WHATSAPP_REQUEST_TIMEOUT', default=15, cast=int)
+# Plantilla aprobada por Meta para recordatorios (llega fuera de la ventana de 24h).
+WHATSAPP_TEMPLATE_RECORDATORIO = config('WHATSAPP_TEMPLATE_RECORDATORIO', default='recordatorio_cita')
+WHATSAPP_TEMPLATE_IDIOMA = config('WHATSAPP_TEMPLATE_IDIOMA', default='es')
 
 # Nombres propios (BOT_AI_*) para no colisionar con un OPENAI_API_KEY global del
 # sistema. Vacío en BASE_URL = OpenAI; para DeepSeek usar https://api.deepseek.com.
