@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, ServicioForm, TurnoForm
 from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
-from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, ficha_cliente, turnos_negocio
+from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, ficha_cliente, tablero_retencion, turnos_negocio
 from apps.negocios.selectors import obtener_negocio_usuario
 
 
@@ -192,7 +192,8 @@ def cliente_detalle(request, cliente_id):
         cliente.nombre = request.POST.get('nombre', '').strip()
         cliente.email = request.POST.get('email', '').strip()
         cliente.observacion = request.POST.get('observacion', '').strip()
-        cliente.save(update_fields=['nombre', 'email', 'observacion'])
+        cliente.fecha_nacimiento = request.POST.get('fecha_nacimiento') or None
+        cliente.save(update_fields=['nombre', 'email', 'observacion', 'fecha_nacimiento'])
         messages.success(request, 'Ficha del cliente actualizada.')
         return redirect('cliente_detalle', cliente_id=cliente.id)
 
@@ -202,6 +203,17 @@ def cliente_detalle(request, cliente_id):
         'cliente': cliente,
         'wa_link': wa,
         **ficha_cliente(cliente),
+    })
+
+
+@login_required
+def retencion(request):
+    negocio = _negocio_requerido(request)
+    if not negocio:
+        return redirect('configuracion_negocio')
+    return render(request, 'agenda/retencion.html', {
+        'negocio': negocio,
+        **tablero_retencion(negocio),
     })
 
 

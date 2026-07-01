@@ -31,6 +31,8 @@
                     <input class="form-control mb-2" name="nombre" value="{{ cliente.nombre }}">
                     <label class="form-label small text-muted">Email</label>
                     <input class="form-control mb-2" name="email" value="{{ cliente.email }}">
+                    <label class="form-label small text-muted">Fecha de nacimiento (para saludo de cumpleaños)</label>
+                    <input type="date" class="form-control mb-2" name="fecha_nacimiento" value="{{ cliente.fecha_nacimiento|date:'Y-m-d' }}">
                     <label class="form-label small text-muted">Notas (piel, preferencias, alergias…)</label>
                     <textarea class="form-control mb-3" name="observacion" rows="4" placeholder="Ej: piel grasa, prefiere sábados, compró kit acné…">{{ cliente.observacion }}</textarea>
                     <button class="btn btn-horus rounded-pill">Guardar ficha</button>

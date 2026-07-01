@@ -94,6 +94,7 @@ class Cliente(models.Model):
     nombre = models.CharField(max_length=160, blank=True)
     telefono = models.CharField(max_length=32)
     email = models.EmailField(blank=True)
+    fecha_nacimiento = models.DateField(blank=True, null=True)
     observacion = models.TextField(blank=True)
     fecha_creacion = models.DateTimeField(auto_now_add=True)
 

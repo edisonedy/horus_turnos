@@ -16,6 +16,7 @@ urlpatterns = [
     path('panel/profesionales/<int:profesional_id>/', views.profesionales, name='profesional_editar'),
     path('panel/clientes/', views.clientes, name='clientes'),
     path('panel/clientes/<int:cliente_id>/', views.cliente_detalle, name='cliente_detalle'),
+    path('panel/retencion/', views.retencion, name='retencion'),
     path('panel/reactivar/', views.reactivar, name='reactivar'),
     path('panel/turnos/', views.turnos, name='turnos'),
     path('panel/turnos/<int:turno_id>/', views.turnos, name='turno_editar'),

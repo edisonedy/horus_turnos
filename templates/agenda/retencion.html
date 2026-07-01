@@ -1,0 +1,94 @@
+{% extends 'base.html' %}
+{% block title %}Retención · {{ negocio.nombre }}{% endblock %}
+{% block content %}
+<div class="mb-4">
+    <h1 class="h3 mb-1">Tablero de retención</h1>
+    <p class="text-muted mb-0">Mantente atento a tus clientas: actúa antes de que se vayan y hazlas volver.</p>
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-lg"><div class="card metric-card"><div class="card-body"><div class="text-muted small">Clientas</div><div class="h3 fw-bold mb-0">{{ total_clientas }}</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card metric-card"><div class="card-body"><div class="text-muted small">🔴 En riesgo</div><div class="h3 fw-bold mb-0 text-danger">{{ n_en_riesgo }}</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card metric-card"><div class="card-body"><div class="text-muted small">💤 Dormidas</div><div class="h3 fw-bold mb-0 text-warning">{{ n_dormidas }}</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card metric-card"><div class="card-body"><div class="text-muted small">🎂 Cumpleaños del mes</div><div class="h3 fw-bold mb-0">{{ n_cumples }}</div></div></div></div>
+    <div class="col-6 col-lg"><div class="card metric-card"><div class="card-body"><div class="text-muted small">Citas este mes</div><div class="h3 fw-bold mb-0">{{ citas_mes }}</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-7">
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span>🔴 En riesgo (30–45 días sin venir) — ¡contáctalas ya!</span>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Cliente</th><th>Última visita</th><th></th></tr></thead>
+                    <tbody>
+                    {% for c in en_riesgo %}
+                        <tr>
+                            <td>{{ c.nombre|default:c.telefono }}</td>
+                            <td>{% if c.ultima %}{{ c.ultima|date:'d/m/Y' }}{% else %}—{% endif %}</td>
+                            <td class="text-end">
+                                <a href="https://wa.me/{{ c.telefono }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill">Escribir</a>
+                                <a href="{% url 'cliente_detalle' c.id %}" class="btn btn-sm btn-outline-dark rounded-pill">Ficha</a>
+                            </td>
+                        </tr>
+                    {% empty %}<tr><td colspan="3" class="text-muted">Ninguna clienta en riesgo ahora mismo. 🎉</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold d-flex justify-content-between align-items-center">
+                <span>💤 Dormidas (+45 días)</span>
+                <a href="{% url 'reactivar' %}?segmento=dormida" class="btn btn-sm btn-horus rounded-pill">Reactivar a todas</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Cliente</th><th>Última visita</th><th></th></tr></thead>
+                    <tbody>
+                    {% for c in dormidas %}
+                        <tr>
+                            <td>{{ c.nombre|default:c.telefono }}</td>
+                            <td>{% if c.ultima %}{{ c.ultima|date:'d/m/Y' }}{% else %}—{% endif %}</td>
+                            <td class="text-end"><a href="{% url 'cliente_detalle' c.id %}" class="btn btn-sm btn-outline-dark rounded-pill">Ficha</a></td>
+                        </tr>
+                    {% empty %}<tr><td colspan="3" class="text-muted">Ninguna dormida. 🎉</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-5">
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold">🎂 Cumpleaños de este mes</div>
+            <div class="card-body">
+                {% for c in cumples %}
+                    <div class="d-flex justify-content-between align-items-center border-bottom py-2">
+                        <span>{{ c.nombre|default:c.telefono }} · {{ c.fecha_nacimiento|date:'d M' }}</span>
+                        <a href="https://wa.me/{{ c.telefono }}" target="_blank" rel="noopener" class="btn btn-sm btn-success rounded-pill">Felicitar</a>
+                    </div>
+                {% empty %}
+                    <div class="text-muted">Nadie cumple este mes (o falta la fecha de nacimiento en las fichas).</div>
+                {% endfor %}
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">🏆 Top clientas (más gastan)</div>
+            <div class="card-body">
+                {% for c in top %}
+                    <a href="{% url 'cliente_detalle' c.id %}" class="d-flex justify-content-between text-decoration-none text-dark border-bottom py-2">
+                        <span>{{ c.nombre|default:c.telefono }} <small class="text-muted">· {{ c.citas }} citas</small></span>
+                        <strong>${{ c.gasto }}</strong>
+                    </a>
+                {% empty %}
+                    <div class="text-muted">Aún sin compras registradas.</div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

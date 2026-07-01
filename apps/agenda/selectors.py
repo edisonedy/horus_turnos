@@ -1,6 +1,6 @@
 from datetime import timedelta
 
-from django.db.models import Max, Q, Sum
+from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
 from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
 
@@ -22,6 +22,46 @@ def clientes_segmentados(negocio, segmento=None):
     elif segmento == 'dormida':
         qs = qs.filter(ultima_cita__lt=limite)
     return qs
+
+
+DIAS_EN_RIESGO = 30
+
+
+def tablero_retencion(negocio):
+    """Datos para el tablero de retención: en riesgo, dormidas, cumpleaños, top clientas."""
+    ahora = timezone.now()
+    hoy = ahora.date()
+    lim_riesgo = ahora - timedelta(days=DIAS_EN_RIESGO)
+    lim_dormida = ahora - timedelta(days=DIAS_DORMIDA)
+
+    con_cita_futura = Turno.objects.filter(
+        fecha_hora_inicio__gte=ahora, estado__in=ESTADOS_TURNO_ACTIVOS
+    ).values_list('cliente_id', flat=True)
+
+    base = negocio.clientes.annotate(
+        ultima=Max('turnos__fecha_hora_inicio'),
+        citas=Count('turnos', distinct=True),
+        gasto=Sum('pedidos_whatsapp__total'),
+    )
+    en_riesgo = base.filter(ultima__lt=lim_riesgo, ultima__gte=lim_dormida).exclude(id__in=con_cita_futura)
+    dormidas = base.filter(ultima__lt=lim_dormida).exclude(id__in=con_cita_futura)
+    cumples = negocio.clientes.filter(fecha_nacimiento__month=hoy.month).order_by('fecha_nacimiento__day')
+    top = base.filter(gasto__gt=0).order_by('-gasto')[:5]
+
+    inicio_mes = ahora.replace(day=1, hour=0, minute=0, second=0, microsecond=0)
+    citas_mes = negocio.turnos.filter(fecha_hora_inicio__gte=inicio_mes).count()
+
+    return {
+        'en_riesgo': en_riesgo.order_by('ultima'),
+        'dormidas': dormidas.order_by('ultima')[:20],
+        'cumples': cumples,
+        'top': top,
+        'n_en_riesgo': en_riesgo.count(),
+        'n_dormidas': dormidas.count(),
+        'n_cumples': cumples.count(),
+        'citas_mes': citas_mes,
+        'total_clientas': negocio.clientes.count(),
+    }
 
 
 def conteo_segmentos(negocio):
