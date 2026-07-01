@@ -99,7 +99,7 @@ class RecordatorioWhatsApp(models.Model):
     class Tipo(models.TextChoices):
         CONFIRMACION = 'confirmacion', 'Confirmación'
         HORAS_24 = '24h', '24 horas'
-        HORAS_2 = '2h', '2 horas'
+        HORAS_2 = '2h', '1 hora'
         POST_CITA = 'post_cita', 'Post cita'
         NO_ASISTIO = 'no_asistio', 'No asistió'
         REACTIVACION = 'reactivacion', 'Reactivación'

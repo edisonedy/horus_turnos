@@ -250,9 +250,11 @@ def crear_recordatorios_turno(turno):
     ahora = timezone.now()
     recordatorios = []
     if config.envia_recordatorio_24h:
+        # Recordatorio 1 día antes.
         recordatorios.append((RecordatorioWhatsApp.Tipo.HORAS_24, turno.fecha_hora_inicio - timedelta(hours=24)))
     if config.envia_recordatorio_2h:
-        recordatorios.append((RecordatorioWhatsApp.Tipo.HORAS_2, turno.fecha_hora_inicio - timedelta(hours=2)))
+        # Recordatorio 1 hora antes.
+        recordatorios.append((RecordatorioWhatsApp.Tipo.HORAS_2, turno.fecha_hora_inicio - timedelta(hours=1)))
 
     creados = 0
     for tipo, fecha_programada in recordatorios:
