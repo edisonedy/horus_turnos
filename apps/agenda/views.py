@@ -188,7 +188,18 @@ def cliente_detalle(request, cliente_id):
         return redirect('configuracion_negocio')
     cliente = get_object_or_404(Cliente, pk=cliente_id, negocio=negocio)
 
-    atencion_form = RegistroAtencionForm(negocio=negocio, cliente=cliente)
+    prefill_turno = None
+    turno_id = request.GET.get('turno')
+    if turno_id:
+        turno_ref = Turno.objects.filter(pk=turno_id, cliente=cliente).select_related('servicio', 'profesional').first()
+        if turno_ref:
+            prefill_turno = {
+                'turno': turno_ref.pk,
+                'fecha': turno_ref.fecha_hora_inicio.date(),
+                'servicio': turno_ref.servicio_id,
+                'profesional': turno_ref.profesional_id,
+            }
+    atencion_form = RegistroAtencionForm(negocio=negocio, cliente=cliente, initial=prefill_turno)
     if request.method == 'POST':
         accion = request.POST.get('accion', 'ficha')
         if accion == 'eliminar_atencion':
@@ -219,6 +230,7 @@ def cliente_detalle(request, cliente_id):
         'cliente': cliente,
         'wa_link': wa,
         'atencion_form': atencion_form,
+        'abrir_atencion': bool(prefill_turno),
         **ficha_cliente(cliente),
     })
 

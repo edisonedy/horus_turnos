@@ -31,7 +31,10 @@
                             <td>{{ turno.servicio.nombre }}</td>
                             <td>{{ turno.profesional.nombre|default:'-' }}</td>
                             <td><span class="badge text-bg-light">{{ turno.get_estado_display }}</span></td>
-                            <td><a href="{% url 'turno_editar' turno.id %}" class="btn btn-sm btn-outline-secondary">Editar</a></td>
+                            <td class="text-nowrap">
+                                <a href="{% url 'turno_editar' turno.id %}" class="btn btn-sm btn-outline-secondary">Editar</a>
+                                <a href="{% url 'cliente_detalle' turno.cliente.id %}?turno={{ turno.id }}#formAtencion" class="btn btn-sm btn-outline-primary" title="Anotar qué se hizo en esta cita">Atención</a>
+                            </td>
                         </tr>
                     {% empty %}
                         <tr><td colspan="6" class="text-muted">Sin turnos.</td></tr>

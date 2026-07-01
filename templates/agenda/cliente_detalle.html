@@ -57,7 +57,7 @@
                 <span>Historial de atenciones · qué se hizo</span>
                 <button class="btn btn-sm btn-horus rounded-pill" type="button" data-bs-toggle="collapse" data-bs-target="#formAtencion">+ Registrar</button>
             </div>
-            <div class="collapse{% if atencion_form.errors %} show{% endif %}" id="formAtencion">
+            <div class="collapse{% if atencion_form.errors or abrir_atencion %} show{% endif %}" id="formAtencion">
                 <div class="card-body border-bottom bg-light-subtle">
                     <form method="post" enctype="multipart/form-data" class="row g-2">
                         {% csrf_token %}
