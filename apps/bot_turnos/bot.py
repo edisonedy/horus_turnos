@@ -27,7 +27,9 @@ from apps.negocios.models import Sucursal
 from apps.whatsapp_api.models import ConversacionWhatsApp
 from apps.whatsapp_api.selectors import obtener_o_crear_conversacion
 from apps.whatsapp_api.services import WhatsAppService
+from django.conf import settings
 from .ai import interpretar_mensaje, respuesta_humana
+from .agent import responder_agente
 from .owner_bot import procesar_mensaje_dueno
 
 MENU_OPCIONES = [
@@ -118,6 +120,13 @@ def procesar_mensaje_entrante(negocio, telefono, texto, nombre=''):
 def procesar_mensaje_cliente(negocio, cliente, texto):
     texto_normalizado = normalizar_texto(texto)
     conversacion = obtener_o_crear_conversacion(negocio, cliente)
+
+    # Modo agente (Opción B): el LLM con memoria maneja la conversación. Si no está
+    # disponible o falla, cae automáticamente al bot híbrido de abajo.
+    if settings.BOT_MODO_AGENTE:
+        respuesta_agente = responder_agente(negocio, cliente, texto, conversacion=conversacion)
+        if respuesta_agente:
+            return _enviar(negocio, cliente.telefono, respuesta_agente)
 
     if not texto_normalizado:
         return _mostrar_menu(negocio, cliente, conversacion)

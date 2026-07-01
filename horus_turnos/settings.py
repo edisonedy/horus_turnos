@@ -105,6 +105,9 @@ OPENAI_API_KEY = config('BOT_AI_API_KEY', default='')
 OPENAI_BASE_URL = config('BOT_AI_BASE_URL', default='')
 OPENAI_MODEL = config('BOT_AI_MODEL', default='deepseek-chat')
 BOT_USA_OPENAI = config('BOT_USA_IA', default=False, cast=bool)
+# Si True, WhatsApp usa el AGENTE con memoria (Opción B). Si el agente falla,
+# cae automáticamente al bot híbrido. Requiere BOT_USA_IA=True.
+BOT_MODO_AGENTE = config('BOT_MODO_AGENTE', default=False, cast=bool)
 
 LOG_DIR = BASE_DIR / 'logs'
 LOG_DIR.mkdir(exist_ok=True)
