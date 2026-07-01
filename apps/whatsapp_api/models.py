@@ -103,6 +103,7 @@ class RecordatorioWhatsApp(models.Model):
         POST_CITA = 'post_cita', 'Post cita'
         NO_ASISTIO = 'no_asistio', 'No asistió'
         REACTIVACION = 'reactivacion', 'Reactivación'
+        CONTROL = 'control', 'Control / seguimiento'
 
     turno = models.ForeignKey('agenda.Turno', on_delete=models.CASCADE, related_name='recordatorios_whatsapp')
     tipo = models.CharField(max_length=24, choices=Tipo.choices)

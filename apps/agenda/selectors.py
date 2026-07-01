@@ -2,7 +2,7 @@ from datetime import timedelta
 
 from django.db.models import Count, Max, Q, Sum
 from django.utils import timezone
-from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
+from .models import BloqueoHorario, Cliente, ListaEspera, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
 
 ESTADOS_TURNO_ACTIVOS = [Turno.Estado.PENDIENTE, Turno.Estado.CONFIRMADO, Turno.Estado.REAGENDADO]
 
@@ -162,6 +162,32 @@ def profesionales_activos(negocio, sucursal=None):
 
 def clientes_negocio(negocio):
     return Cliente.objects.filter(negocio=negocio).order_by('-fecha_creacion')
+
+
+def controles_pendientes(negocio, dias=14):
+    """Clientas con un control/seguimiento programado (próximo control) que ya
+    llegó o llega dentro de `dias`, y que todavía no han vuelto. Una fila por
+    clienta (su atención más reciente con control)."""
+    hoy = timezone.localdate()
+    horizonte = hoy + timedelta(days=dias)
+    registros = (RegistroAtencion.objects
+                 .filter(negocio=negocio, proximo_control__isnull=False, proximo_control__lte=horizonte)
+                 .select_related('cliente', 'servicio')
+                 .order_by('cliente_id', '-fecha', '-fecha_creacion'))
+    vistos, pendientes = set(), []
+    for r in registros:
+        if r.cliente_id in vistos:
+            continue
+        vistos.add(r.cliente_id)
+        ya_volvio = r.cliente.turnos.filter(
+            fecha_hora_inicio__date__gte=r.proximo_control,
+            estado=Turno.Estado.ATENDIDO).exists()
+        if not ya_volvio:
+            r.vencido = r.proximo_control < hoy
+            r.dias = (r.proximo_control - hoy).days
+            pendientes.append(r)
+    pendientes.sort(key=lambda r: r.proximo_control)
+    return pendientes
 
 
 def turnos_negocio(negocio):

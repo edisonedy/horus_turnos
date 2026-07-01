@@ -5,7 +5,7 @@ from django.urls import reverse
 
 from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, RegistroAtencionForm, ServicioForm, TurnoForm
 from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
-from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, ficha_cliente, tablero_retencion, turnos_negocio
+from apps.agenda.selectors import clientes_negocio, clientes_segmentados, conteo_segmentos, controles_pendientes, ficha_cliente, tablero_retencion, turnos_negocio
 from apps.negocios.selectors import obtener_negocio_usuario
 
 
@@ -232,6 +232,22 @@ def cliente_detalle(request, cliente_id):
         'atencion_form': atencion_form,
         'abrir_atencion': bool(prefill_turno),
         **ficha_cliente(cliente),
+    })
+
+
+@login_required
+def controles(request):
+    negocio = _negocio_requerido(request)
+    if not negocio:
+        return redirect('configuracion_negocio')
+    pendientes = controles_pendientes(negocio)
+    for p in pendientes:
+        p.wa_link = f"https://wa.me/{p.cliente.telefono}" if p.cliente.telefono else ''
+    vencidos = sum(1 for p in pendientes if p.vencido)
+    return render(request, 'agenda/controles.html', {
+        'negocio': negocio,
+        'pendientes': pendientes,
+        'vencidos': vencidos,
     })
 
 

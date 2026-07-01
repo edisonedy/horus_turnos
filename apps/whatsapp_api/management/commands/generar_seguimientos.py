@@ -73,4 +73,28 @@ class Command(BaseCommand):
             if creado:
                 creados += 1
 
+        # ---- CONTROL (próximo control de una atención registrada) ----
+        from apps.agenda.models import RegistroAtencion
+        hoy = ahora.date()
+        atenciones = (RegistroAtencion.objects
+                      .filter(proximo_control__lte=hoy, turno__isnull=False)
+                      .select_related('cliente', 'negocio', 'servicio', 'turno'))
+        for at in atenciones:
+            cliente = at.cliente
+            # si ya tiene una cita futura, no molestar
+            if cliente.turnos.filter(fecha_hora_inicio__gte=ahora, estado__in=ESTADOS_ACTIVOS).exists():
+                continue
+            servicio = at.servicio or at.turno.servicio
+            detalle = f' de {servicio.nombre}' if servicio else ''
+            mensaje = (
+                f'Hola {_nombre(cliente)} 🌸 ya es momento de tu control de seguimiento{detalle}. '
+                f'¿Te agendo? Escríbenos y coordinamos tu próxima visita 💆‍♀️'
+            )
+            _, creado = RecordatorioWhatsApp.objects.get_or_create(
+                turno=at.turno, tipo=RecordatorioWhatsApp.Tipo.CONTROL,
+                defaults={'mensaje': mensaje, 'fecha_programada': ahora},
+            )
+            if creado:
+                creados += 1
+
         self.stdout.write(self.style.SUCCESS(f'Seguimientos generados: {creados}'))
