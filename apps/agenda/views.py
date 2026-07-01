@@ -3,8 +3,8 @@ from django.contrib.auth.decorators import login_required
 from django.shortcuts import get_object_or_404, redirect, render
 
 from apps.agenda.forms import PedidoWhatsAppForm, PreguntaFrecuenteForm, ProductoForm, ProfesionalForm, PromocionWhatsAppForm, ServicioForm, TurnoForm
-from apps.agenda.models import PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
-from apps.agenda.selectors import clientes_negocio, turnos_negocio
+from apps.agenda.models import Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, Servicio, Turno
+from apps.agenda.selectors import clientes_negocio, ficha_cliente, turnos_negocio
 from apps.negocios.selectors import obtener_negocio_usuario
 
 
@@ -177,6 +177,30 @@ def clientes(request):
     return render(request, 'agenda/clientes.html', {
         'negocio': negocio,
         'clientes': clientes_negocio(negocio),
+    })
+
+
+@login_required
+def cliente_detalle(request, cliente_id):
+    negocio = _negocio_requerido(request)
+    if not negocio:
+        return redirect('configuracion_negocio')
+    cliente = get_object_or_404(Cliente, pk=cliente_id, negocio=negocio)
+
+    if request.method == 'POST':
+        cliente.nombre = request.POST.get('nombre', '').strip()
+        cliente.email = request.POST.get('email', '').strip()
+        cliente.observacion = request.POST.get('observacion', '').strip()
+        cliente.save(update_fields=['nombre', 'email', 'observacion'])
+        messages.success(request, 'Ficha del cliente actualizada.')
+        return redirect('cliente_detalle', cliente_id=cliente.id)
+
+    wa = f"https://wa.me/{cliente.telefono}" if cliente.telefono else ''
+    return render(request, 'agenda/cliente_detalle.html', {
+        'negocio': negocio,
+        'cliente': cliente,
+        'wa_link': wa,
+        **ficha_cliente(cliente),
     })
 
 

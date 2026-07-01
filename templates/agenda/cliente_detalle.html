@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% block title %}{{ cliente.nombre|default:cliente.telefono }} · Ficha{% endblock %}
+{% block content %}
+<div class="d-flex justify-content-between align-items-start mb-3 flex-wrap gap-2">
+    <div>
+        <a href="{% url 'clientes' %}" class="text-decoration-none small text-muted">← Clientes</a>
+        <h1 class="h3 mb-1">{{ cliente.nombre|default:'Sin nombre' }}
+            <span class="badge rounded-pill
+                {% if segmento == 'Activa' %}text-bg-success{% elif segmento == 'Dormida' %}text-bg-warning{% else %}text-bg-secondary{% endif %}">{{ segmento }}</span>
+        </h1>
+        <p class="text-muted mb-0">{{ cliente.telefono }}{% if cliente.email %} · {{ cliente.email }}{% endif %} · cliente desde {{ cliente.fecha_creacion|date:'d/m/Y' }}</p>
+    </div>
+    {% if wa_link %}<a class="btn btn-success rounded-pill" href="{{ wa_link }}" target="_blank" rel="noopener">Escribir por WhatsApp</a>{% endif %}
+</div>
+
+<div class="row g-3 mb-4">
+    <div class="col-6 col-md-3"><div class="card metric-card"><div class="card-body"><div class="text-muted small">Citas totales</div><div class="h3 fw-bold mb-0">{{ total_citas }}</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="card metric-card"><div class="card-body"><div class="text-muted small">Asistió</div><div class="h3 fw-bold mb-0 text-success">{{ atendidas }}</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="card metric-card"><div class="card-body"><div class="text-muted small">No asistió</div><div class="h3 fw-bold mb-0 text-danger">{{ no_shows }}</div></div></div></div>
+    <div class="col-6 col-md-3"><div class="card metric-card"><div class="card-body"><div class="text-muted small">Gastado en productos</div><div class="h3 fw-bold mb-0">${{ total_gastado }}</div></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-lg-5">
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold">Datos y notas</div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <label class="form-label small text-muted">Nombre</label>
+                    <input class="form-control mb-2" name="nombre" value="{{ cliente.nombre }}">
+                    <label class="form-label small text-muted">Email</label>
+                    <input class="form-control mb-2" name="email" value="{{ cliente.email }}">
+                    <label class="form-label small text-muted">Notas (piel, preferencias, alergias…)</label>
+                    <textarea class="form-control mb-3" name="observacion" rows="4" placeholder="Ej: piel grasa, prefiere sábados, compró kit acné…">{{ cliente.observacion }}</textarea>
+                    <button class="btn btn-horus rounded-pill">Guardar ficha</button>
+                </form>
+            </div>
+        </div>
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Resumen</div>
+            <div class="card-body">
+                <div class="d-flex justify-content-between border-bottom py-2"><span>Próxima cita</span><strong>{% if proxima_cita %}{{ proxima_cita.fecha_hora_inicio|date:'d/m/Y H:i' }}{% else %}—{% endif %}</strong></div>
+                <div class="d-flex justify-content-between border-bottom py-2"><span>Última visita</span><strong>{% if ultima_visita %}{{ ultima_visita.fecha_hora_inicio|date:'d/m/Y' }}{% else %}—{% endif %}</strong></div>
+                <div class="d-flex justify-content-between py-2"><span>Días sin venir</span><strong>{% if dias_ultima is not None %}{{ dias_ultima }}{% else %}—{% endif %}</strong></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-7">
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold">Historial de citas</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Fecha</th><th>Servicio</th><th>Estado</th></tr></thead>
+                    <tbody>
+                    {% for t in turnos %}
+                        <tr>
+                            <td>{{ t.fecha_hora_inicio|date:'d/m/Y H:i' }}</td>
+                            <td>{{ t.servicio.nombre }}</td>
+                            <td><span class="badge text-bg-light">{{ t.get_estado_display }}</span></td>
+                        </tr>
+                    {% empty %}<tr><td colspan="3" class="text-muted">Sin citas todavía.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card table-card mb-4">
+            <div class="card-header bg-white fw-semibold">Compras / cotizaciones</div>
+            <div class="table-responsive">
+                <table class="table align-middle mb-0">
+                    <thead><tr><th>Fecha</th><th>Producto</th><th>Cant.</th><th class="text-end">Total</th></tr></thead>
+                    <tbody>
+                    {% for p in pedidos %}
+                        <tr>
+                            <td>{{ p.fecha_creacion|date:'d/m/Y' }}</td>
+                            <td>{{ p.producto.nombre }}</td>
+                            <td>{{ p.cantidad }}</td>
+                            <td class="text-end">${{ p.total }}</td>
+                        </tr>
+                    {% empty %}<tr><td colspan="4" class="text-muted">Sin compras.</td></tr>{% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div class="card table-card">
+            <div class="card-header bg-white fw-semibold">Últimos mensajes</div>
+            <div class="card-body" style="max-height:280px;overflow-y:auto">
+                {% for m in mensajes %}
+                    <div class="border-bottom py-2">
+                        <div class="d-flex justify-content-between">
+                            <small class="fw-semibold {% if m.tipo == 'entrante' %}text-primary{% else %}text-success{% endif %}">{{ m.get_tipo_display }}</small>
+                            <small class="text-muted">{{ m.fecha_creacion|date:'d/m/Y H:i' }}</small>
+                        </div>
+                        <div class="small">{{ m.mensaje|truncatechars:140 }}</div>
+                    </div>
+                {% empty %}<div class="text-muted">Sin mensajes.</div>{% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
