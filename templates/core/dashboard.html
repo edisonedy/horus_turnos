@@ -1,12 +1,13 @@
 {% extends 'base.html' %}
 {% block title %}Panel · {{ negocio.nombre|default:'Daya Facial Care' }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
+<div class="page-head">
     <div>
-        <h1 class="h3 mb-1">Panel de {{ negocio.nombre|default:'Daya Facial Care' }}</h1>
-        <p class="text-muted mb-0">Resumen del día. La atención al cliente ocurre por WhatsApp.</p>
+        <div class="eyebrow">Resumen del día</div>
+        <h1 class="h3">Panel de {{ negocio.nombre|default:'Daya Facial Care' }}</h1>
+        <p class="text-muted">La atención al cliente ocurre por WhatsApp; aquí solo administras.</p>
     </div>
-    {% if negocio %}<span class="badge badge-soft rounded-pill px-3 py-2">{{ negocio.nombre }}</span>{% endif %}
+    {% if negocio %}<span class="badge badge-soft px-3 py-2">{{ negocio.nombre }}</span>{% endif %}
 </div>
 
 {% if not negocio %}
@@ -14,32 +15,32 @@
 <a href="{% url 'configuracion_negocio' %}" class="btn btn-horus">Configurar negocio</a>
 {% else %}
 
-<div class="d-flex flex-wrap gap-2 mb-4">
-    <a class="btn btn-sm btn-horus rounded-pill" href="{% url 'turnos' %}">Ver turnos</a>
-    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'reportes' %}">Reportes</a>
-    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'conversaciones' %}">Conversaciones</a>
-    <a class="btn btn-sm btn-outline-dark rounded-pill" href="{% url 'configuracion_negocio' %}">Configuración</a>
+<div class="page-actions">
+    <a class="btn btn-sm btn-horus" href="{% url 'turnos' %}"><i class="bi bi-calendar2-week"></i> Ver turnos</a>
+    <a class="btn btn-sm btn-outline-dark" href="{% url 'reportes' %}"><i class="bi bi-graph-up-arrow"></i> Reportes</a>
+    <a class="btn btn-sm btn-outline-dark" href="{% url 'conversaciones' %}"><i class="bi bi-chat-dots"></i> Conversaciones</a>
+    <a class="btn btn-sm btn-outline-dark" href="{% url 'configuracion_negocio' %}"><i class="bi bi-sliders"></i> Configuración</a>
 </div>
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-md-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Turnos hoy</div><div class="display-6 fw-bold">{{ turnos_hoy|length }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-calendar2-week"></i></span><div class="text-muted small">Turnos hoy</div><div class="display-6 fw-bold">{{ turnos_hoy|length }}</div></div></div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Clientes</div><div class="display-6 fw-bold">{{ clientes_total }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-people"></i></span><div class="text-muted small">Clientes</div><div class="display-6 fw-bold">{{ clientes_total }}</div></div></div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Recordatorios pendientes</div><div class="display-6 fw-bold">{{ recordatorios_pendientes|length }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-bell"></i></span><div class="text-muted small">Recordatorios pendientes</div><div class="display-6 fw-bold">{{ recordatorios_pendientes|length }}</div></div></div>
     </div>
     <div class="col-6 col-md-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Errores WhatsApp</div><div class="display-6 fw-bold">{{ errores_whatsapp|length }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-exclamation-triangle"></i></span><div class="text-muted small">Errores WhatsApp</div><div class="display-6 fw-bold">{{ errores_whatsapp|length }}</div></div></div>
     </div>
 </div>
 
 <div class="row g-4">
     <div class="col-lg-7">
         <div class="card table-card">
-            <div class="card-header bg-white fw-semibold">Turnos de hoy</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-calendar2-check"></i> Turnos de hoy</div>
             <div class="table-responsive">
                 <table class="table align-middle mb-0">
                     <thead><tr><th>Hora</th><th>Cliente</th><th>Servicio</th><th>Estado</th></tr></thead>
@@ -61,7 +62,7 @@
     </div>
     <div class="col-lg-5">
         <div class="card table-card mb-4">
-            <div class="card-header bg-white fw-semibold">Turnos por estado</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-pie-chart"></i> Turnos por estado</div>
             <div class="card-body">
                 {% for estado, total in turnos_por_estado.items %}
                     <div class="d-flex justify-content-between border-bottom py-2"><span>{{ estado }}</span><strong>{{ total }}</strong></div>
@@ -69,7 +70,7 @@
             </div>
         </div>
         <div class="card table-card">
-            <div class="card-header bg-white fw-semibold">Conversaciones recientes</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-chat-dots"></i> Conversaciones recientes</div>
             <div class="card-body">
                 {% for conversacion in conversaciones_recientes %}
                     <a href="{% url 'conversacion_detalle' conversacion.id %}" class="d-flex justify-content-between text-decoration-none text-dark border-bottom py-2">
@@ -82,7 +83,7 @@
             </div>
         </div>
         <div class="card table-card mt-4">
-            <div class="card-header bg-white fw-semibold">Pedidos y cotizaciones</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-bag-heart"></i> Pedidos y cotizaciones</div>
             <div class="card-body">
                 {% for pedido in pedidos_recientes %}
                     <a href="{% url 'pedido_editar' pedido.id %}" class="d-flex justify-content-between text-decoration-none text-dark border-bottom py-2">

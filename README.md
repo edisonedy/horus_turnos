@@ -62,30 +62,6 @@ Si solo cambió la URL del túnel y quieres reconectar el webhook a mano:
 - Panel admin: **http://127.0.0.1:8060/panel/** — usuario `daya` / `daya` (o `edison` / `edison`).
 - Configura el negocio, servicios, horarios, productos y el **WhatsApp API** desde el menú lateral.
 
-Entrar al panel:
-
-```text
-http://127.0.0.1:8000/accounts/login/
-```
-
-Landing comercial:
-
-```text
-http://127.0.0.1:8000/
-```
-
-Panel administrativo:
-
-```text
-http://127.0.0.1:8000/panel/
-```
-
-Configuración del negocio:
-
-```text
-http://127.0.0.1:8000/panel/negocio/
-```
-
 Modelo de negocio y estrategia comercial:
 
 ```text
@@ -129,16 +105,20 @@ Endpoint del webhook en el sistema:
 /whatsapp/webhook/
 ```
 
-En local necesitas exponer Django con ngrok:
+En local necesitas exponer Django con un túnel. `scripts/iniciar.ps1` ya
+levanta cloudflared apuntando al puerto 8060; para hacerlo a mano:
 
 ```powershell
-ngrok http 8000
+cloudflared tunnel --url http://127.0.0.1:8060
 ```
+
+Ojo: el túnel rápido cambia de URL en cada reinicio, así que hay que volver a
+registrar el webhook en Meta (o usar `manage.py registrar_webhook`).
 
 En Meta configura:
 
 ```text
-Callback URL: https://TU_SUBDOMINIO.ngrok-free.app/whatsapp/webhook/
+Callback URL: https://TU-TUNEL.trycloudflare.com/whatsapp/webhook/
 Verify token: el mismo verify_token guardado en Panel > WhatsApp API
 ```
 

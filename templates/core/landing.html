@@ -1,17 +1,76 @@
 {% extends 'base.html' %}
-{% load static %}
-{% block title %}Daya Facial Care · Belleza y cuidado de la piel en Queens, NY{% endblock %}
+{% load static daya_extras %}
+
+{% block title %}Daya Facial Care · Estética facial en Queens, NY{% endblock %}
+
 {% block extra_css %}
-<link rel="stylesheet" href="{% static 'css/daya.css' %}?v=20260629-3">
+<link rel="stylesheet" href="{% static 'css/daya.css' %}?v=20260830-1">
 {% endblock %}
+
+{% block extra_head %}
+<meta name="description" content="Estética facial en Queens, NY. Limpiezas faciales, tratamiento de acné, hiperpigmentación, rejuvenecimiento, depilación láser y cejas 3D con Erika Dayana. Agenda por WhatsApp.">
+<link rel="canonical" href="https://dayafacialcare.com/">
+<link rel="preload" as="image" href="{% static hero_img|webp %}" fetchpriority="high">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Daya Facial Care">
+<meta property="og:title" content="Daya Facial Care · Estética facial en Queens, NY">
+<meta property="og:description" content="Tratamientos faciales personalizados con Erika Dayana. Agenda tu cita por WhatsApp en segundos.">
+<meta property="og:image" content="{{ request.scheme }}://{{ request.get_host }}{% static hero_img %}">
+<meta property="og:locale" content="es_US">
+<meta name="twitter:card" content="summary_large_image">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BeautySalon",
+  "name": "{{ negocio.nombre|default:'Daya Facial Care' }}",
+  "description": "Estética facial y cuidado de la piel en Queens, NY.",
+  "image": "{{ request.scheme }}://{{ request.get_host }}{% static hero_img %}",
+  "url": "https://dayafacialcare.com/",
+  "telephone": "{{ negocio.telefono_principal|default:'+1 929-773-1659' }}",
+  "priceRange": "$$",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "105-05 Northern Blvd",
+    "addressLocality": "Flushing",
+    "addressRegion": "NY",
+    "postalCode": "11368",
+    "addressCountry": "US"
+  },
+  "sameAs": [{% for red in redes %}"{{ red.url }}"{% if not forloop.last %}, {% endif %}{% endfor %}],
+  "openingHoursSpecification": [{% for h in horarios %}{
+    "@type": "OpeningHoursSpecification",
+    "dayOfWeek": "{{ h.dia_schema }}",
+    "opens": "{{ h.inicio|time:'H:i' }}",
+    "closes": "{{ h.fin|time:'H:i' }}"
+  }{% if not forloop.last %}, {% endif %}{% endfor %}]
+}
+</script>
+{% if faqs %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [{% for f in faqs %}{
+    "@type": "Question",
+    "name": "{{ f.pregunta|escapejs }}",
+    "acceptedAnswer": { "@type": "Answer", "text": "{{ f.respuesta|escapejs }}" }
+  }{% if not forloop.last %}, {% endif %}{% endfor %}]
+}
+</script>
+{% endif %}
+{% endblock %}
+
 {% block content %}
-{% with wa_link='https://wa.me/'|add:numero_wa|add:'?text=Hola%20Daya,%20quiero%20agendar%20una%20cita%20%F0%9F%92%86' %}
 <div class="daya-landing">
 
-    <!-- NAV -->
+    <div class="scroll-progress" id="scrollProgress"></div>
+
+    <!-- ===== NAV ===== -->
     <nav class="daya-nav" id="dayaNav">
-        <a class="brand brand-logo" href="#inicio">
-            <img src="{% static logo_img %}" alt="Daya Facial Care" class="nav-logo">
+        <a class="brand brand-logo" href="#inicio" aria-label="Daya Facial Care, inicio">
+            <img src="{% static logo_img|webp %}" alt="" class="nav-logo" width="46" height="46">
             <span>Daya Facial Care<small>Queens · NY</small></span>
         </a>
         <div class="links" id="navLinks">
@@ -19,13 +78,16 @@
             <a href="#tratamientos">Tratamientos</a>
             <a href="#productos">Productos</a>
             <a href="#galeria">Galería</a>
+            <a href="#preguntas">Preguntas</a>
             <a href="#contacto">Contacto</a>
-            {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">Agendar</a>{% endif %}
+            {% if wa_general %}<a class="btn-daya" href="{{ wa_general }}" target="_blank" rel="noopener">Agendar</a>{% endif %}
         </div>
-        <button class="burger" id="burger" aria-label="Menú">☰</button>
+        <button class="burger" id="burger" aria-label="Abrir menú" aria-expanded="false" aria-controls="navLinks">
+            <i class="bi bi-list"></i>
+        </button>
     </nav>
 
-    <!-- HERO -->
+    <!-- ===== HERO ===== -->
     <header class="daya-hero" id="inicio">
         <div class="blob b1"></div><div class="blob b2"></div>
         <div class="container">
@@ -37,30 +99,54 @@
                         Tratamientos faciales y estéticos personalizados que realzan tu belleza
                         y tu confianza, en un ambiente cálido y profesional con Erika Dayana.
                     </p>
+
+                    <div class="hero-status reveal d2">
+                        <span class="estado {% if abierto_ahora %}abierto{% else %}cerrado{% endif %}">
+                            <i class="bi bi-circle-fill"></i>
+                            {% if abierto_ahora %}Abierto ahora{% else %}Cerrado ahora{% endif %}
+                        </span>
+                        {% if horario_hoy %}
+                            <span class="detalle">Hoy {{ horario_hoy.hora_inicio|time:'g:i A' }} – {{ horario_hoy.hora_fin|time:'g:i A' }}</span>
+                        {% endif %}
+                        <span class="detalle"><i class="bi bi-geo-alt"></i> Flushing, Queens</span>
+                    </div>
+
                     <div class="daya-hero-actions reveal d3">
-                        {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">✆ Agenda tu cita</a>{% endif %}
+                        {% if wa_general %}
+                        <a class="btn-daya" href="{{ wa_general }}" target="_blank" rel="noopener">
+                            <i class="bi bi-whatsapp"></i> Agenda tu cita
+                        </a>
+                        {% endif %}
                         <a class="btn-daya-ghost" href="#tratamientos">Ver tratamientos</a>
                     </div>
+
                     <div class="hero-trust reveal d4">
-                        <div><strong>+7</strong><span>Años de experiencia</span></div>
-                        <div><strong>+1.5k</strong><span>Clientas felices</span></div>
+                        <div><strong data-cuenta="7" data-sufijo="+">7+</strong><span>Años de experiencia</span></div>
+                        <div><strong data-cuenta="1500" data-formato="mil" data-sufijo="+">1.5k+</strong><span>Clientas atendidas</span></div>
                         <div><strong>5.0★</strong><span>Satisfacción</span></div>
                     </div>
                 </div>
+
                 <div class="col-lg-6">
                     <div class="hero-visual reveal d2">
                         <div class="ring"></div>
-                        <div class="frame"><img src="{% static hero_img %}" alt="Erika Dayana en Daya Facial Care" loading="eager"></div>
-                        <div class="hero-float-card c1"><div class="dot">🌿</div><div><strong>Productos eco</strong><span>Seguros para tu piel</span></div></div>
-                        <div class="hero-float-card c2"><div class="dot">💆‍♀️</div><div><strong>100% personalizado</strong><span>Según tu tipo de piel</span></div></div>
+                        <div class="frame" data-parallax="0.05">
+                            <picture>
+                                <source srcset="{% static hero_img|webp %}" type="image/webp">
+                                <img src="{% static hero_img %}" alt="Erika Dayana en el estudio de Daya Facial Care"
+                                     width="933" height="1400" fetchpriority="high" decoding="async">
+                            </picture>
+                        </div>
+                        <div class="hero-float-card c1"><div class="dot"><i class="bi bi-flower1"></i></div><div><strong>Productos eco</strong><span>Seguros para tu piel</span></div></div>
+                        <div class="hero-float-card c2"><div class="dot"><i class="bi bi-heart"></i></div><div><strong>100% personalizado</strong><span>Según tu tipo de piel</span></div></div>
                     </div>
                 </div>
             </div>
         </div>
     </header>
 
-    <!-- MARQUEE -->
-    <div class="daya-marquee">
+    <!-- ===== MARQUEE ===== -->
+    <div class="daya-marquee" aria-hidden="true">
         <div class="track">
             {% for i in "12" %}
             <span>Limpieza Facial</span><span class="sep">✦</span><span>Tratamiento de Acné</span><span class="sep">✦</span>
@@ -71,21 +157,31 @@
         </div>
     </div>
 
-    <!-- SOBRE MÍ -->
+    <!-- ===== SOBRE MÍ ===== -->
     <section class="daya-section" id="sobre">
         <div class="container">
             <div class="row align-items-center g-5">
                 <div class="col-lg-6">
                     <div class="about-img-stack reveal">
-                        <div class="main"><img src="{% static about_img %}" alt="Erika Dayana, esteticista"></div>
-                        <div class="sub"><img src="{% static about_img2 %}" alt="Ambiente del estudio"></div>
+                        <div class="main">
+                            <picture>
+                                <source srcset="{% static about_img|webp %}" type="image/webp">
+                                <img src="{% static about_img %}" alt="Erika Dayana, esteticista" width="600" height="900" loading="lazy" decoding="async">
+                            </picture>
+                        </div>
+                        <div class="sub">
+                            <picture>
+                                <source srcset="{% static about_img2|webp %}" type="image/webp">
+                                <img src="{% static about_img2 %}" alt="Ambiente del estudio" width="600" height="900" loading="lazy" decoding="async">
+                            </picture>
+                        </div>
                         <div class="badge-years"><strong>7+</strong><span>Años</span></div>
                     </div>
                 </div>
                 <div class="col-lg-6 ps-lg-5">
                     <span class="daya-kicker reveal">Sobre mí</span>
                     <h2 class="reveal d1 mt-3">Hola, soy <span class="italic-accent">Erika Dayana</span></h2>
-                    <p class="reveal d2 mt-3" style="color:var(--muted)">
+                    <p class="reveal d2 mt-3 parrafo-suave">
                         Con más de 7 años dedicada al cuidado de la piel, mi misión es que cada clienta
                         salga sintiéndose renovada y segura de sí misma. Cada tratamiento se diseña a tu medida,
                         con productos eco-amigables y técnicas profesionales.
@@ -96,106 +192,131 @@
                         <li>Ambiente cómodo, limpio y profesional</li>
                         <li>Satisfacción garantizada en cada visita</li>
                     </ul>
-                    {% if numero_wa %}
-                    <a class="btn-daya mt-4 reveal d4" href="{{ wa_link }}" target="_blank" rel="noopener">Conóceme por WhatsApp</a>
+                    {% if wa_general %}
+                    <a class="btn-daya mt-4 reveal d4" href="{{ wa_general }}" target="_blank" rel="noopener">
+                        <i class="bi bi-whatsapp"></i> Conóceme por WhatsApp
+                    </a>
                     {% endif %}
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- TRATAMIENTOS -->
+    <!-- ===== TRATAMIENTOS ===== -->
     <section class="daya-section alt" id="tratamientos">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">Tratamientos</span>
+                <span class="daya-kicker">Tratamientos</span>
                 <h2>Cuidados pensados para realzar tu belleza</h2>
-                <p>Cada servicio se adapta a tu tipo de piel y a tus objetivos. Escríbenos y te recomendamos el ideal para ti.</p>
+                <p>Cada servicio se adapta a tu tipo de piel y a tus objetivos. Toca el que te interese y te escribimos por WhatsApp.</p>
             </div>
             <div class="row g-4">
                 {% for s in servicios %}
-                <div class="col-6 col-lg-3 reveal d{% cycle '1' '2' '3' '4' %}">
-                    <a class="service-card" href="{{ wa_link }}" target="_blank" rel="noopener">
-                        <img src="{% static s.imagen %}" alt="{{ s.obj.nombre }}" loading="lazy">
+                <div class="col-12 col-sm-6 col-lg-3 reveal d{% cycle '1' '2' '3' '4' %}">
+                    <a class="service-card" href="{{ s.wa|default:wa_general }}" target="_blank" rel="noopener"
+                       aria-label="Agendar {{ s.obj.nombre }} por WhatsApp">
+                        <picture>
+                            <source srcset="{% static s.imagen|webp %}" type="image/webp">
+                            <img src="{% static s.imagen %}" alt="{{ s.obj.nombre }}" width="600" height="900" loading="lazy" decoding="async">
+                        </picture>
                         <div class="overlay"></div>
                         <div class="body">
                             <span class="num">0{{ forloop.counter }}</span>
                             <h3>{{ s.obj.nombre }}</h3>
                             <p>{{ s.obj.descripcion }}</p>
-                            <div class="meta">{{ s.obj.duracion_minutos }} min{% if s.obj.precio %} · ${{ s.obj.precio }}{% endif %} · Agendar →</div>
+                            <div class="meta">
+                                <span class="chip"><i class="bi bi-clock"></i> {{ s.obj.duracion_minutos }} min</span>
+                                {% if s.obj.precio %}<span class="chip">${{ s.obj.precio|floatformat:0 }}</span>{% endif %}
+                                <span class="ir">Agendar <i class="bi bi-arrow-right"></i></span>
+                            </div>
                         </div>
                     </a>
                 </div>
                 {% empty %}
-                <p class="text-center text-muted">Pronto publicaremos nuestros tratamientos.</p>
+                <p class="text-center parrafo-suave">Pronto publicaremos nuestros tratamientos.</p>
                 {% endfor %}
             </div>
         </div>
     </section>
 
-    <!-- POR QUÉ (features) -->
+    <!-- ===== EXPERIENCIA ===== -->
     <section class="daya-section dark">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">La experiencia Daya</span>
+                <span class="daya-kicker">La experiencia Daya</span>
                 <h2>Más que un tratamiento, un momento para ti</h2>
             </div>
             <div class="row g-4">
-                <div class="col-6 col-lg-3 reveal d1"><div class="feature"><div class="ic">🌸</div><h3>Atención personalizada</h3><p>Escuchamos tu piel y diseñamos un plan a tu medida.</p></div></div>
-                <div class="col-6 col-lg-3 reveal d2"><div class="feature"><div class="ic">🌿</div><h3>Productos eco-amigables</h3><p>Fórmulas seguras y de alta calidad para resultados reales.</p></div></div>
-                <div class="col-6 col-lg-3 reveal d3"><div class="feature"><div class="ic">🕐</div><h3>Agenda flexible</h3><p>Reserva por WhatsApp en segundos, sin formularios complicados.</p></div></div>
-                <div class="col-6 col-lg-3 reveal d4"><div class="feature"><div class="ic">✨</div><h3>Satisfacción garantizada</h3><p>Tu confianza y tu bienestar son nuestra prioridad.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d1"><div class="feature"><div class="ic"><i class="bi bi-flower2"></i></div><h3>Atención personalizada</h3><p>Escuchamos tu piel y diseñamos un plan a tu medida.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d2"><div class="feature"><div class="ic"><i class="bi bi-droplet"></i></div><h3>Productos eco-amigables</h3><p>Fórmulas seguras y de alta calidad para resultados reales.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d3"><div class="feature"><div class="ic"><i class="bi bi-whatsapp"></i></div><h3>Agenda en 1 minuto</h3><p>Reservas por WhatsApp, sin formularios ni llamadas en espera.</p></div></div>
+                <div class="col-6 col-lg-3 reveal d4"><div class="feature"><div class="ic"><i class="bi bi-stars"></i></div><h3>Satisfacción garantizada</h3><p>Tu confianza y tu bienestar son nuestra prioridad.</p></div></div>
             </div>
         </div>
     </section>
 
-    <!-- PRODUCTOS -->
+    <!-- ===== PRODUCTOS ===== -->
     <section class="daya-section" id="productos">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">Boutique</span>
+                <span class="daya-kicker">Boutique</span>
                 <h2>Lleva el cuidado a casa</h2>
                 <p>Productos recomendados por Erika para mantener tu piel radiante entre cada visita.</p>
             </div>
-            <div class="row g-4">
+            <div class="row g-4 justify-content-center">
                 {% for p in productos %}
-                <div class="col-6 col-lg-2 reveal d{% cycle '1' '2' '3' %}">
+                <div class="col-6 col-md-4 col-xl-2 reveal d{% cycle '1' '2' '3' %}">
                     <div class="product-card">
-                        <div class="thumb"><img src="{% static p.imagen %}" alt="{{ p.obj.nombre }}" loading="lazy"></div>
+                        <div class="thumb">
+                            <picture>
+                                <source srcset="{% static p.imagen|webp %}" type="image/webp">
+                                <img src="{% static p.imagen %}" alt="{{ p.obj.nombre }}" width="600" height="900" loading="lazy" decoding="async">
+                            </picture>
+                        </div>
                         <div class="info">
                             <h3>{{ p.obj.nombre }}</h3>
-                            <div class="price">${{ p.obj.precio }}</div>
-                            {% if numero_wa %}<a class="buy" href="{{ wa_link }}" target="_blank" rel="noopener">Pedir por WhatsApp →</a>{% endif %}
+                            <div class="price">${{ p.obj.precio|floatformat:0 }}</div>
+                            {% if p.wa %}
+                            <a class="buy" href="{{ p.wa }}" target="_blank" rel="noopener">
+                                <i class="bi bi-whatsapp"></i> Pedir
+                            </a>
+                            {% endif %}
                         </div>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-center text-muted">Catálogo en preparación.</p>
+                <p class="text-center parrafo-suave">Catálogo en preparación.</p>
                 {% endfor %}
             </div>
         </div>
     </section>
 
-    <!-- GALERÍA -->
+    <!-- ===== GALERÍA ===== -->
     <section class="daya-section alt" id="galeria">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">Galería</span>
+                <span class="daya-kicker">Galería</span>
                 <h2>Resultados que hablan por sí solos</h2>
+                <p>Toca una foto para verla en grande.</p>
             </div>
-            <div class="gallery-grid reveal">
+            <div class="gallery-grid reveal" id="galeriaGrid">
                 {% for img in galeria %}
-                <a href="{{ wa_link }}" target="_blank" rel="noopener"><img src="{% static img %}" alt="Daya Facial Care" loading="lazy"></a>
+                <button type="button" class="gallery-item" data-full="{% static img %}" aria-label="Ampliar foto {{ forloop.counter }}">
+                    <picture>
+                        <source srcset="{% static img|webp %}" type="image/webp">
+                        <img src="{% static img %}" alt="Daya Facial Care" width="600" height="900" loading="lazy" decoding="async">
+                    </picture>
+                </button>
                 {% endfor %}
             </div>
         </div>
     </section>
 
-    <!-- TESTIMONIOS -->
+    <!-- ===== TESTIMONIOS ===== -->
     <section class="daya-section">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">Testimonios</span>
+                <span class="daya-kicker">Testimonios</span>
                 <h2>Lo que dicen nuestras clientas</h2>
             </div>
             <div class="row g-4">
@@ -206,88 +327,161 @@
         </div>
     </section>
 
-    <!-- PROMO -->
-    <section class="daya-section alt">
+    <!-- ===== PREGUNTAS FRECUENTES ===== -->
+    {% if faqs %}
+    <section class="daya-section alt" id="preguntas">
         <div class="container">
-            <div class="promo-band reveal">
-                <img src="{% static promo_img %}" alt="">
-                <div class="veil"></div>
-                <span class="badge-off">PROMO DE BIENVENIDA</span>
-                <h2 class="mt-3">10% de descuento en tu primer tratamiento</h2>
-                <p class="mb-4 mt-2" style="max-width:520px;margin-inline:auto">Escríbenos por WhatsApp, cuéntanos qué buscas y agenda tu cita con la promoción de bienvenida.</p>
-                {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener" style="background:#fff;color:var(--rose-ink)">✆ Agendar ahora</a>{% endif %}
+            <div class="section-head reveal">
+                <span class="daya-kicker">Preguntas frecuentes</span>
+                <h2>Lo que más nos preguntan</h2>
+            </div>
+            <div class="faq-wrap reveal">
+                {% for f in faqs %}
+                <details class="faq-item"{% if forloop.first %} open{% endif %}>
+                    <summary>{{ f.pregunta }}<i class="bi bi-plus-lg"></i></summary>
+                    <div class="faq-body">{{ f.respuesta|linebreaksbr }}</div>
+                </details>
+                {% endfor %}
+                {% if wa_general %}
+                <div class="faq-cta">
+                    ¿Tienes otra duda?
+                    <a href="{{ wa_general }}" target="_blank" rel="noopener">Escríbenos por WhatsApp <i class="bi bi-arrow-right"></i></a>
+                </div>
+                {% endif %}
             </div>
         </div>
     </section>
+    {% endif %}
 
-    <!-- CONTACTO -->
-    <section class="daya-section" id="contacto">
+    <!-- ===== PROMO ===== -->
+    {% if promo %}
+    <section class="daya-section">
+        <div class="container">
+            <div class="promo-band reveal">
+                <picture>
+                    <source srcset="{% static promo_img|webp %}" type="image/webp">
+                    <img src="{% static promo_img %}" alt="" width="600" height="900" loading="lazy" decoding="async">
+                </picture>
+                <div class="veil"></div>
+                <span class="badge-off">{% if promo.codigo %}Código {{ promo.codigo }}{% else %}Promo de bienvenida{% endif %}</span>
+                <h2 class="mt-3">{{ promo.titulo }}</h2>
+                <p class="promo-texto">{{ promo.descripcion }}</p>
+                {% if promo.fecha_fin %}<p class="promo-vigencia"><i class="bi bi-calendar-event"></i> Válida hasta el {{ promo.fecha_fin|date:'d/m/Y' }}</p>{% endif %}
+                {% if wa_promo %}
+                <a class="btn-daya btn-claro" href="{{ wa_promo }}" target="_blank" rel="noopener">
+                    <i class="bi bi-whatsapp"></i> Quiero esta promo
+                </a>
+                {% endif %}
+            </div>
+        </div>
+    </section>
+    {% endif %}
+
+    <!-- ===== CONTACTO ===== -->
+    <section class="daya-section {% if not promo %}alt{% endif %}" id="contacto">
         <div class="container">
             <div class="section-head reveal">
-                <span class="daya-kicker justify-content-center" style="display:flex">Visítanos</span>
+                <span class="daya-kicker">Visítanos</span>
                 <h2>Te esperamos en Queens</h2>
             </div>
             <div class="row g-4">
                 <div class="col-lg-4 reveal d1">
                     <div class="contact-card">
-                        <h3 class="h5 mb-3">Horarios</h3>
+                        <div class="contact-head">
+                            <h3>Horarios</h3>
+                            <span class="estado {% if abierto_ahora %}abierto{% else %}cerrado{% endif %}">
+                                <i class="bi bi-circle-fill"></i>{% if abierto_ahora %}Abierto{% else %}Cerrado{% endif %}
+                            </span>
+                        </div>
                         {% for h in horarios %}
-                        <div class="hours-row"><span>{{ h.dia }}</span><strong>{{ h.inicio|time:'g:i A' }} – {{ h.fin|time:'g:i A' }}</strong></div>
+                        <div class="hours-row{% if h.es_hoy %} today{% endif %}">
+                            <span>{{ h.dia }}{% if h.es_hoy %} · hoy{% endif %}</span>
+                            <strong>{{ h.inicio|time:'g:i A' }} – {{ h.fin|time:'g:i A' }}</strong>
+                        </div>
                         {% empty %}
-                        <p class="text-muted mb-0">Lun–Vie 10:00 AM–8:00 PM · Sáb y Dom 11:00 AM–6:00 PM</p>
+                        <p class="parrafo-suave mb-0">Lun–Vie 10:00 AM–8:00 PM · Sáb y Dom 11:00 AM–6:00 PM</p>
                         {% endfor %}
                     </div>
                 </div>
+
                 <div class="col-lg-4 reveal d2">
                     <div class="contact-card">
-                        <h3 class="h5 mb-3">Contacto</h3>
-                        <div class="contact-item"><div class="lbl">Dirección</div><div class="val">{{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div></div>
-                        <div class="contact-item"><div class="lbl">Teléfono / WhatsApp</div><div class="val">{{ negocio.telefono_principal|default:'+1 929-773-1659' }}</div></div>
-                        <div class="lbl mb-2">Síguenos</div>
+                        <h3 class="mb-3">Contacto</h3>
+                        <a class="contact-item" href="https://maps.google.com/?q={{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368'|urlencode }}" target="_blank" rel="noopener">
+                            <div class="lbl"><i class="bi bi-geo-alt"></i> Dirección</div>
+                            <div class="val">{{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div>
+                        </a>
+                        <a class="contact-item" href="tel:{{ negocio.telefono_principal|default:'+19297731659' }}">
+                            <div class="lbl"><i class="bi bi-telephone"></i> Teléfono</div>
+                            <div class="val">{{ negocio.telefono_principal|default:'+1 929-773-1659' }}</div>
+                        </a>
+                        {% if wa_general %}
+                        <a class="contact-item" href="{{ wa_general }}" target="_blank" rel="noopener">
+                            <div class="lbl"><i class="bi bi-whatsapp"></i> WhatsApp</div>
+                            <div class="val">Escríbenos y agenda al instante</div>
+                        </a>
+                        {% endif %}
+                        <div class="lbl mt-3 mb-2">Síguenos</div>
                         <div class="social-row">
-                            <a href="https://instagram.com/dayafacialcare" target="_blank" rel="noopener" title="Instagram">IG</a>
-                            <a href="https://www.tiktok.com/@erika_dayana1" target="_blank" rel="noopener" title="TikTok">TT</a>
-                            <a href="https://www.facebook.com/profile.php?id=61579714409219" target="_blank" rel="noopener" title="Facebook">FB</a>
+                            {% for red in redes %}
+                            <a href="{{ red.url }}" target="_blank" rel="noopener" aria-label="{{ red.nombre }}" title="{{ red.nombre }}">
+                                <i class="bi {{ red.icono }}"></i>
+                            </a>
+                            {% endfor %}
                         </div>
                     </div>
                 </div>
+
                 <div class="col-lg-4 reveal d3">
                     <div class="map-frame">
-                        <iframe src="https://www.google.com/maps?q=105-05%20Northern%20Blvd,%20Flushing,%20NY%2011368&output=embed" loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa Daya Facial Care"></iframe>
+                        <iframe src="https://www.google.com/maps?q=105-05%20Northern%20Blvd,%20Flushing,%20NY%2011368&output=embed"
+                                loading="lazy" referrerpolicy="no-referrer-when-downgrade" title="Mapa de Daya Facial Care"></iframe>
                     </div>
                 </div>
             </div>
         </div>
     </section>
 
-    <!-- FOOTER -->
+    <!-- ===== FOOTER ===== -->
     <footer class="daya-footer">
         <div class="container">
+            <img src="{% static logo_img|webp %}" alt="" class="foot-logo" width="64" height="64" loading="lazy">
             <div class="brand">Daya Facial Care</div>
             <p class="mt-2 mb-3">Belleza y cuidado de la piel · Queens, NY</p>
-            {% if numero_wa %}<a class="btn-daya" href="{{ wa_link }}" target="_blank" rel="noopener">Agenda tu cita</a>{% endif %}
-            <div class="fline">© Daya Facial Care · {{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div>
+            <div class="foot-links">
+                <a href="#tratamientos">Tratamientos</a>
+                <a href="#productos">Productos</a>
+                <a href="#galeria">Galería</a>
+                <a href="#contacto">Contacto</a>
+            </div>
+            <div class="social-row justify-content-center mt-3">
+                {% for red in redes %}
+                <a href="{{ red.url }}" target="_blank" rel="noopener" aria-label="{{ red.nombre }}"><i class="bi {{ red.icono }}"></i></a>
+                {% endfor %}
+            </div>
+            <div class="fline">© {% now "Y" %} Daya Facial Care · {{ negocio.direccion|default:'105-05 Northern Blvd, Flushing, NY 11368' }}</div>
         </div>
     </footer>
 
-    {% if numero_wa %}<a class="wa-float" href="{{ wa_link }}" target="_blank" rel="noopener" title="Escríbenos por WhatsApp">✆</a>{% endif %}
+    <!-- ===== ACCIONES FLOTANTES ===== -->
+    {% if wa_general %}
+    <a class="wa-float" href="{{ wa_general }}" target="_blank" rel="noopener" aria-label="Escríbenos por WhatsApp">
+        <i class="bi bi-whatsapp"></i>
+    </a>
+    <div class="mobile-cta" id="mobileCta">
+        <a class="llamar" href="tel:{{ negocio.telefono_principal|default:'+19297731659' }}"><i class="bi bi-telephone"></i> Llamar</a>
+        <a class="agendar" href="{{ wa_general }}" target="_blank" rel="noopener"><i class="bi bi-whatsapp"></i> Agendar cita</a>
+    </div>
+    {% endif %}
+
+    <!-- Visor de galería -->
+    <div class="lightbox" id="lightbox" role="dialog" aria-modal="true" aria-label="Foto ampliada">
+        <button class="lb-cerrar" id="lbCerrar" aria-label="Cerrar"><i class="bi bi-x-lg"></i></button>
+        <button class="lb-nav lb-prev" id="lbPrev" aria-label="Anterior"><i class="bi bi-chevron-left"></i></button>
+        <img id="lbImg" alt="Foto de Daya Facial Care">
+        <button class="lb-nav lb-next" id="lbNext" aria-label="Siguiente"><i class="bi bi-chevron-right"></i></button>
+    </div>
 </div>
 
-<script>
-(function () {
-    var nav = document.getElementById('dayaNav');
-    var onScroll = function () { nav.classList.toggle('scrolled', window.scrollY > 40); };
-    window.addEventListener('scroll', onScroll, { passive: true }); onScroll();
-
-    var burger = document.getElementById('burger'), links = document.getElementById('navLinks');
-    if (burger) burger.addEventListener('click', function () { links.classList.toggle('open'); });
-    links.querySelectorAll('a').forEach(function (a) { a.addEventListener('click', function () { links.classList.remove('open'); }); });
-
-    var io = new IntersectionObserver(function (entries) {
-        entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('in'); io.unobserve(e.target); } });
-    }, { threshold: 0.12 });
-    document.querySelectorAll('.reveal').forEach(function (el) { io.observe(el); });
-})();
-</script>
-{% endwith %}
+<script src="{% static 'js/daya.js' %}?v=20260830-1" defer></script>
 {% endblock %}

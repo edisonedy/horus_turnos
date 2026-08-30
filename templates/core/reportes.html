@@ -1,10 +1,11 @@
 {% extends 'base.html' %}
 {% block title %}Reportes - {{ negocio.nombre|default:'HORUS' }}{% endblock %}
 {% block content %}
-<div class="d-flex justify-content-between align-items-start mb-4">
+<div class="page-head">
     <div>
-        <h1 class="h3 mb-1">Reportes</h1>
-        <p class="text-muted mb-0">Resumen de turnos, ventas y clientes en el rango seleccionado.</p>
+        <div class="eyebrow">Análisis del negocio</div>
+        <h1 class="h3">Reportes</h1>
+        <p class="text-muted">Resumen de turnos, ventas y clientes en el rango seleccionado.</p>
     </div>
     {% if negocio %}<span class="badge badge-soft rounded-pill px-3 py-2">{{ negocio.nombre }}</span>{% endif %}
 </div>
@@ -33,21 +34,21 @@
 
 <div class="row g-3 mb-4">
     <div class="col-6 col-lg-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Turnos</div><div class="display-6 fw-bold">{{ turnos_total }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-calendar2-week"></i></span><div class="text-muted small">Turnos</div><div class="display-6 fw-bold">{{ turnos_total }}</div></div></div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Ingresos servicios (atendidos)</div><div class="display-6 fw-bold">${{ ingresos_servicios }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-cash-coin"></i></span><div class="text-muted small">Ingresos servicios (atendidos)</div><div class="display-6 fw-bold">${{ ingresos_servicios }}</div></div></div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Ventas productos</div><div class="display-6 fw-bold">${{ ventas_productos }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-box-seam"></i></span><div class="text-muted small">Ventas productos</div><div class="display-6 fw-bold">${{ ventas_productos }}</div></div></div>
     </div>
     <div class="col-6 col-lg-3">
-        <div class="card metric-card"><div class="card-body"><div class="text-muted small">Clientes nuevos</div><div class="display-6 fw-bold">{{ clientes_nuevos }}</div></div></div>
+        <div class="card metric-card"><div class="card-body"><span class="m-ico"><i class="bi bi-person-plus"></i></span><div class="text-muted small">Clientes nuevos</div><div class="display-6 fw-bold">{{ clientes_nuevos }}</div></div></div>
     </div>
 </div>
 
 <div class="card table-card mb-4">
-    <div class="card-header bg-white fw-semibold">Uso de WhatsApp este mes (para estimar costo)</div>
+    <div class="card-header bg-white fw-semibold"><i class="bi bi-whatsapp"></i> Uso de WhatsApp este mes (para estimar costo)</div>
     <div class="card-body">
         <div class="row text-center">
             <div class="col-4"><div class="text-muted small">Mensajes enviados</div><div class="h4 fw-bold mb-0">{{ wa_salientes }}</div></div>
@@ -61,7 +62,7 @@
 <div class="row g-4 mb-4">
     <div class="col-lg-6">
         <div class="card table-card h-100">
-            <div class="card-header bg-white fw-semibold">Turnos por estado</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-pie-chart"></i> Turnos por estado</div>
             <div class="card-body">
                 {% for fila in turnos_por_estado %}
                     <div class="d-flex justify-content-between border-bottom py-2">
@@ -76,7 +77,7 @@
     </div>
     <div class="col-lg-6">
         <div class="card table-card h-100">
-            <div class="card-header bg-white fw-semibold">Servicios más solicitados</div>
+            <div class="card-header bg-white fw-semibold"><i class="bi bi-stars"></i> Servicios más solicitados</div>
             <div class="card-body">
                 {% for fila in top_servicios %}
                     <div class="d-flex justify-content-between border-bottom py-2">

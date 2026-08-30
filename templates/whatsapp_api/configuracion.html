@@ -11,7 +11,9 @@
                 <form method="post">
                     {% csrf_token %}
                     {% include 'includes/form_fields.html' %}
-                    <button class="btn btn-horus" type="submit">Guardar WhatsApp</button>
+                    <div class="form-acciones">
+                        <button class="btn btn-horus" type="submit">Guardar WhatsApp</button>
+                    </div>
                 </form>
             </div>
         </div>

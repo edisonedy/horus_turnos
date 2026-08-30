@@ -11,9 +11,11 @@
             <div class="card-body">
                 <form method="post">
                     {% csrf_token %}
-                    {{ form.as_p }}
-                    <button class="btn btn-horus w-100">Guardar</button>
-                    {% if promocion_editando %}<a href="{% url 'promociones' %}" class="btn btn-outline-secondary w-100 mt-2">Cancelar</a>{% endif %}
+                    {% include 'includes/form_fields.html' %}
+                    <div class="form-acciones">
+                        <button class="btn btn-horus" type="submit">Guardar</button>
+                        {% if promocion_editando %}<a href="{% url 'promociones' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+                    </div>
                 </form>
             </div>
         </div>

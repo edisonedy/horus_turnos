@@ -1,19 +1,21 @@
 {% extends 'base.html' %}
-{% block title %}Ingresar - HORUS TURNOS{% endblock %}
+{% load static %}
+{% block title %}Ingresar · {{ negocio_actual.nombre|default:'Daya Facial Care' }}{% endblock %}
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-5 col-lg-4">
-        <div class="card border-0 shadow-sm rounded-4 mt-5">
-            <div class="card-body p-4">
-                <h1 class="h4 mb-1">Ingresar</h1>
-                <p class="text-muted">Panel administrativo mínimo.</p>
-                <form method="post">
-                    {% csrf_token %}
-                    {{ form.as_p }}
-                    <button class="btn btn-horus w-100" type="submit">Entrar</button>
-                </form>
-            </div>
-        </div>
+<div class="card auth-card">
+    <div class="card-body">
+        <img class="auth-logo" src="{% static 'img/daya/logo.png' %}" alt="">
+        <div class="eyebrow">Panel administrativo</div>
+        <h1 class="h3">Ingresar</h1>
+        <p class="text-muted">Accede para gestionar turnos, clientas y el bot de WhatsApp.</p>
+        <form method="post">
+            {% csrf_token %}
+            {{ form.as_p }}
+            <button class="btn btn-horus w-100" type="submit">Entrar</button>
+        </form>
+        <p class="text-muted small text-center mt-4 mb-0">
+            Las clientas agendan por WhatsApp; este panel es solo para el equipo.
+        </p>
     </div>
 </div>
 {% endblock %}

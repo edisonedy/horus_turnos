@@ -1,8 +1,10 @@
 from django import forms
+
+from apps.core.forms import BootstrapModelForm
 from .models import ConfiguracionWhatsApp
 
 
-class ConfiguracionWhatsAppForm(forms.ModelForm):
+class ConfiguracionWhatsAppForm(BootstrapModelForm):
     class Meta:
         model = ConfiguracionWhatsApp
         fields = [
@@ -19,10 +21,3 @@ class ConfiguracionWhatsAppForm(forms.ModelForm):
             'verify_token': forms.TextInput(),
             'app_secret': forms.PasswordInput(render_value=True),
         }
-
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            css_class = 'form-check-input' if isinstance(field.widget, forms.CheckboxInput) else 'form-control'
-            existing = field.widget.attrs.get('class', '')
-            field.widget.attrs['class'] = f'{existing} {css_class}'.strip()

@@ -10,24 +10,24 @@
     <div class="col-6 col-md-3">
         <a href="?segmento=dormida" class="text-decoration-none">
             <div class="card metric-card {% if segmento == 'dormida' %}border-warning border-2{% endif %}"><div class="card-body">
-                <div class="text-muted small">💤 Dormidas (+45 días)</div><div class="h3 fw-bold mb-0 text-warning">{{ conteo.dormida }}</div></div></div>
+                <span class="m-ico"><i class="bi bi-moon-stars"></i></span><div class="text-muted small">Dormidas (+45 días)</div><div class="h3 fw-bold mb-0 text-warning">{{ conteo.dormida }}</div></div></div>
         </a>
     </div>
     <div class="col-6 col-md-3">
         <a href="?segmento=activa" class="text-decoration-none">
             <div class="card metric-card {% if segmento == 'activa' %}border-success border-2{% endif %}"><div class="card-body">
-                <div class="text-muted small">🟢 Activas</div><div class="h3 fw-bold mb-0 text-success">{{ conteo.activa }}</div></div></div>
+                <span class="m-ico"><i class="bi bi-check2-circle"></i></span><div class="text-muted small">Activas</div><div class="h3 fw-bold mb-0 text-success">{{ conteo.activa }}</div></div></div>
         </a>
     </div>
     <div class="col-6 col-md-3">
         <a href="?segmento=nueva" class="text-decoration-none">
             <div class="card metric-card {% if segmento == 'nueva' %}border-secondary border-2{% endif %}"><div class="card-body">
-                <div class="text-muted small">⚪ Nuevas (sin citas)</div><div class="h3 fw-bold mb-0">{{ conteo.nueva }}</div></div></div>
+                <span class="m-ico"><i class="bi bi-stars"></i></span><div class="text-muted small">Nuevas (sin citas)</div><div class="h3 fw-bold mb-0">{{ conteo.nueva }}</div></div></div>
         </a>
     </div>
     <div class="col-6 col-md-3">
         <div class="card metric-card"><div class="card-body">
-            <div class="text-muted small">Total clientas</div><div class="h3 fw-bold mb-0">{{ conteo.total }}</div></div></div>
+            <span class="m-ico"><i class="bi bi-people"></i></span><div class="text-muted small">Total clientas</div><div class="h3 fw-bold mb-0">{{ conteo.total }}</div></div></div>
     </div>
 </div>
 

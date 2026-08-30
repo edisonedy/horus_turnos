@@ -11,8 +11,10 @@
                 <form method="post">
                     {% csrf_token %}
                     {% include 'includes/form_fields.html' %}
-                    <button class="btn btn-horus" type="submit">Guardar</button>
-                    {% if producto_editando %}<a href="{% url 'productos' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+                    <div class="form-acciones">
+                        <button class="btn btn-horus" type="submit">Guardar</button>
+                        {% if producto_editando %}<a href="{% url 'productos' %}" class="btn btn-outline-secondary">Cancelar</a>{% endif %}
+                    </div>
                 </form>
             </div>
         </div>

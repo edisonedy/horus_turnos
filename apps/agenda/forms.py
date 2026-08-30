@@ -1,15 +1,8 @@
 from django import forms
 from django.utils import timezone
+
+from apps.core.forms import BootstrapModelForm
 from .models import BloqueoHorario, Cliente, PedidoWhatsApp, PreguntaFrecuente, Producto, Profesional, PromocionWhatsApp, RegistroAtencion, Servicio, Turno
-
-
-class BootstrapModelForm(forms.ModelForm):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
-        for field in self.fields.values():
-            css_class = 'form-check-input' if isinstance(field.widget, forms.CheckboxInput) else 'form-control'
-            existing = field.widget.attrs.get('class', '')
-            field.widget.attrs['class'] = f'{existing} {css_class}'.strip()
 
 
 class ProfesionalForm(BootstrapModelForm):

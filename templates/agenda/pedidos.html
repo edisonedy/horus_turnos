@@ -20,8 +20,10 @@
                 <form method="post">
                     {% csrf_token %}
                     {% include 'includes/form_fields.html' %}
-                    <button class="btn btn-horus" type="submit">Guardar</button>
-                    <a href="{% url 'pedidos' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    <div class="form-acciones">
+                        <button class="btn btn-horus" type="submit">Guardar</button>
+                        <a href="{% url 'pedidos' %}" class="btn btn-outline-secondary">Cancelar</a>
+                    </div>
                 </form>
             </div>
         </div>

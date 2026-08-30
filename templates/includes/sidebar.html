@@ -1,31 +1,59 @@
-<div class="sidebar-inner p-3">
-    <div class="small text-uppercase text-muted mb-2">Daya Facial Care</div>
-    <a href="{% url 'dashboard' %}" class="sidebar-link">Dashboard</a>
-    <a href="{% url 'reportes' %}" class="sidebar-link">Reportes</a>
-    <a href="{% url 'turnos' %}" class="sidebar-link">Turnos</a>
-    <a href="{% url 'clientes' %}" class="sidebar-link">Clientes</a>
-    <a href="{% url 'controles' %}" class="sidebar-link">Controles / seguimiento</a>
-    <a href="{% url 'retencion' %}" class="sidebar-link">Retención</a>
-    <a href="{% url 'reactivar' %}" class="sidebar-link">Reactivar clientas</a>
-    <a href="{% url 'conversaciones' %}" class="sidebar-link">Conversaciones</a>
-    <a href="{% url 'simulador_bot' %}" class="sidebar-link">Simulador bot</a>
-    <a href="{% url 'pedidos' %}" class="sidebar-link">Pedidos</a>
+{% load static %}
+<div class="sidebar-inner">
+    <div class="sb-brand">
+        <img src="{% static 'img/daya/logo.png' %}" alt="">
+        <div>
+            <strong>{{ negocio_actual.nombre|default:'Daya Facial Care' }}</strong>
+            <span>Queens, NY</span>
+        </div>
+    </div>
 
-    <div class="small text-uppercase text-muted mt-3 mb-2">Catálogo</div>
-    <a href="{% url 'servicios' %}" class="sidebar-link">Servicios</a>
-    <a href="{% url 'productos' %}" class="sidebar-link">Productos</a>
-    <a href="{% url 'promociones' %}" class="sidebar-link">Promociones</a>
-    <a href="{% url 'preguntas_frecuentes' %}" class="sidebar-link">Preguntas frecuentes</a>
-    <a href="{% url 'horarios' %}" class="sidebar-link">Horarios</a>
+    <div class="sb-search">
+        <i class="bi bi-search"></i>
+        <input type="search" id="sidebarFilter" placeholder="Buscar en el menú…" autocomplete="off" aria-label="Buscar en el menú">
+    </div>
 
-    <div class="small text-uppercase text-muted mt-3 mb-2">Configuración</div>
-    <a href="{% url 'configuracion_negocio' %}" class="sidebar-link">Negocio</a>
-    <a href="{% url 'configuracion_whatsapp' %}" class="sidebar-link">WhatsApp API</a>
-    <a href="{% url 'recordatorios' %}" class="sidebar-link">Recordatorios</a>
-    <a href="{% url 'errores_webhook' %}" class="sidebar-link">Errores bot</a>
+    <nav id="sidebarNav">
+        <div class="sb-group">
+            <div class="sb-label">Operación</div>
+            <a href="{% url 'dashboard' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-grid-1x2"></i></span>Dashboard</a>
+            <a href="{% url 'turnos' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-calendar2-week"></i></span>Turnos</a>
+            <a href="{% url 'reportes' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-graph-up-arrow"></i></span>Reportes</a>
+            <a href="{% url 'conversaciones' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-chat-dots"></i></span>Conversaciones</a>
+            <a href="{% url 'simulador_bot' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-robot"></i></span>Simulador bot</a>
+            <a href="{% url 'pedidos' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-bag-heart"></i></span>Pedidos</a>
+        </div>
 
-    <div class="mt-4 p-3 rounded-4 sidebar-note">
-        <div class="fw-semibold">Atención por WhatsApp</div>
+        <div class="sb-group">
+            <div class="sb-label">Clientas</div>
+            <a href="{% url 'clientes' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-people"></i></span>Clientes</a>
+            <a href="{% url 'controles' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-clipboard2-pulse"></i></span>Controles / seguimiento</a>
+            <a href="{% url 'retencion' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-heart-pulse"></i></span>Retención</a>
+            <a href="{% url 'reactivar' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-arrow-repeat"></i></span>Reactivar clientas</a>
+        </div>
+
+        <div class="sb-group">
+            <div class="sb-label">Catálogo</div>
+            <a href="{% url 'servicios' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-stars"></i></span>Servicios</a>
+            <a href="{% url 'productos' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-box-seam"></i></span>Productos</a>
+            <a href="{% url 'promociones' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-tag"></i></span>Promociones</a>
+            <a href="{% url 'preguntas_frecuentes' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-question-circle"></i></span>Preguntas frecuentes</a>
+            <a href="{% url 'horarios' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-clock-history"></i></span>Horarios</a>
+        </div>
+
+        <div class="sb-group">
+            <div class="sb-label">Configuración</div>
+            <a href="{% url 'configuracion_negocio' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-shop"></i></span>Negocio</a>
+            <a href="{% url 'configuracion_whatsapp' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-whatsapp"></i></span>WhatsApp API</a>
+            <a href="{% url 'recordatorios' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-bell"></i></span>Recordatorios</a>
+            <a href="{% url 'errores_webhook' %}" class="sidebar-link"><span class="sb-ico"><i class="bi bi-exclamation-triangle"></i></span>Errores bot</a>
+        </div>
+
+        <div class="sb-empty" id="sidebarEmpty">Sin resultados en el menú.</div>
+    </nav>
+
+    <div class="sidebar-note">
+        <div class="fw-semibold"><i class="bi bi-whatsapp text-success"></i> Atención por WhatsApp</div>
         <div class="small text-muted">Las clientas agendan y consultan por WhatsApp; este panel es solo administrativo.</div>
     </div>
 </div>

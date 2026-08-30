@@ -1,20 +1,35 @@
-<nav class="navbar navbar-expand-lg navbar-dark horus-navbar sticky-top">
-    <div class="container-fluid">
-        <a class="navbar-brand fw-bold" href="{% url 'landing' %}">
-            <span class="nav-brand-mark">{{ negocio_actual.nombre|first|default:'H' }}</span>
-            {{ negocio_actual.nombre|default:'HORUS' }}
+{% load static %}
+<nav class="navbar horus-navbar panel-navbar sticky-top">
+    <div class="container-fluid d-flex align-items-center gap-2 px-0">
+        {% if user.is_authenticated and not public_page %}
+            <button class="sidebar-toggle" id="sidebarToggle" type="button" aria-label="Abrir menú" aria-controls="appSidebar" aria-expanded="false">
+                <i class="bi bi-list"></i>
+            </button>
+        {% endif %}
+
+        <a class="navbar-brand" href="{% if user.is_authenticated %}{% url 'dashboard' %}{% else %}{% url 'landing' %}{% endif %}">
+            <span class="nav-brand-mark"><img src="{% static 'img/daya/logo.png' %}" alt=""></span>
+            <span>
+                {{ negocio_actual.nombre|default:'Daya Facial Care' }}
+                <span class="nav-brand-sub">Panel administrativo</span>
+            </span>
         </a>
-        <span class="navbar-text d-none d-md-inline">Belleza y cuidado de la piel · Queens, NY</span>
-        <div class="ms-auto d-flex align-items-center gap-3">
+
+        <div class="ms-auto d-flex align-items-center gap-2">
             {% if user.is_authenticated %}
-                <a class="btn btn-sm btn-outline-light" href="{% url 'dashboard' %}">Panel</a>
-                <span class="text-white-50 small">{{ user.get_username }}</span>
+                <a class="nav-ghost-btn d-none d-sm-inline-flex" href="{% url 'landing' %}" target="_blank" rel="noopener">
+                    <i class="bi bi-box-arrow-up-right"></i> Ver sitio
+                </a>
+                <span class="nav-user">
+                    <span class="avatar">{{ user.get_username|first }}</span>
+                    <span class="nav-user-name">{{ user.get_username }}</span>
+                </span>
                 <form method="post" action="{% url 'logout' %}" class="m-0">
                     {% csrf_token %}
-                    <button class="btn btn-sm btn-outline-light" type="submit">Salir</button>
+                    <button class="nav-ghost-btn" type="submit"><i class="bi bi-box-arrow-right"></i> Salir</button>
                 </form>
             {% else %}
-                <a class="btn btn-sm btn-outline-light" href="{% url 'login' %}">Ingresar</a>
+                <a class="nav-ghost-btn" href="{% url 'login' %}"><i class="bi bi-lock"></i> Ingresar</a>
             {% endif %}
         </div>
     </div>
